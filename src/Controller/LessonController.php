@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-#[Route('/lesson')]
+#[Route('/lessons')]
 final class LessonController extends AbstractController
 {
     #[Route(name: 'app_lesson_index', methods: ['GET'])]
