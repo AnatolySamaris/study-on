@@ -45,8 +45,10 @@ final class LessonController extends AbstractController
     #[Route('/{id}', name: 'app_lesson_show', methods: ['GET'])]
     public function show(Lesson $lesson): Response
     {
+        $course = $lesson->getCourse();
         return $this->render('lesson/show.html.twig', [
             'lesson' => $lesson,
+            'course' => $course
         ]);
     }
 
