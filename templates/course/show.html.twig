@@ -30,5 +30,5 @@
         {% endfor %}
     </table>
     
-    <a href="{{ path('app_lesson_new') }}">Create new</a>
+    <a href="{{ path('app_lesson_new', {'course_id': course.id}) }}">Create new</a>
 {% endblock %}
