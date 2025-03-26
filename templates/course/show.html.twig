@@ -5,15 +5,15 @@
 {% block body %}
     <h1>{{ course.title }}</h1>
 
-    <a href="{{ path('app_course_index') }}">back to list</a>
+    <a href="{{ path('app_course_index') }}">Back to list</a>
 
-    <a href="{{ path('app_course_edit', {'id': course.id}) }}">edit</a>
+    <a href="{{ path('app_course_edit', {'id': course.id}) }}">Edit</a>
 
     {{ include('course/_delete_form.html.twig') }}
 
     <hr style="border: 0; height: 2px; background-color: black;">
 
-    <p>{{ course.description }}</p>
+    <p>{{ course.description ?: "No description." }}</p>
 
     <h3>Lessons</h3>
     <table class="table">
@@ -25,7 +25,7 @@
             </tr>
         {% else %}
             <tr>
-                <td colspan="5">no records found</td>
+                <td colspan="5">No records found</td>
             </tr>
         {% endfor %}
     </table>

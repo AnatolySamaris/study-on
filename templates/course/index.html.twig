@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Course index{% endblock %}
+{% block title %}Courses / StudyOn{% endblock %}
 
 {% block body %}
     <h1>Course index</h1>
@@ -18,11 +18,11 @@
                 <td>
                     <a href="{{ path('app_course_show', {'id': course.id}) }}">{{ course.title }}</a>
                 </td>
-                <td>{{ course.description }}</td>
+                <td>{{ course.description ?: "No description." }}</td>
             </tr>
         {% else %}
             <tr>
-                <td colspan="5">no records found</td>
+                <td colspan="5">No records found</td>
             </tr>
         {% endfor %}
         </tbody>
