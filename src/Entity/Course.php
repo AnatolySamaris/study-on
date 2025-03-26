@@ -6,6 +6,7 @@ use App\Repository\CourseRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: CourseRepository::class)]
 class Course
@@ -15,13 +16,31 @@ class Course
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, unique: true)]
+    #[Assert\NotBlank(message: 'Код курса не может быть пустым')]
+    #[Assert\Length(
+        max: 255,
+        maxMessage: 'Код курса не может быть длиннее {{ limit }} символов'
+    )]
+    #[Assert\Regex(
+        pattern: '/^[a-zA-Z0-9_\-]+$/',
+        message: 'Код курса может содержать только буквы, цифры, дефисы и подчеркивания'
+    )]
     private ?string $code = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Название курса не может быть пустым')]
+    #[Assert\Length(
+        max: 255,
+        maxMessage: 'Название курса не может быть длиннее {{ limit }} символов'
+    )]
     private ?string $title = null;
 
     #[ORM\Column(length: 1000, nullable: true)]
+    #[Assert\Length(
+        max: 1000,
+        maxMessage: 'Описание не может быть длиннее {{ limit }} символов'
+    )]
     private ?string $description = null;
 
     /**
