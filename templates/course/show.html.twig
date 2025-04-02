@@ -5,9 +5,11 @@
 {% block body %}
     <h1>{{ course.title }}</h1>
 
-    <a href="{{ path('app_course_index') }}">Back to list</a>
+    <a class="btn btn-primary text-white" href="{{ path('app_course_index') }}">Back to list</a>
 
-    <a href="{{ path('app_course_edit', {'id': course.id}) }}">Edit</a>
+    <a class="btn btn-success text-white" href="{{ path('app_course_edit', {'id': course.id}) }}">Edit</a>
+
+    <div style="height: 5px;"></div>
 
     {{ include('course/_delete_form.html.twig') }}
 
@@ -20,7 +22,9 @@
         {% for lesson in lessons %}
             <tr>
                 <td>
-                    <a href="{{ path('app_lesson_show', {'id': lesson.id}) }}">{{ lesson.title }}</a>
+                    <a class="text-dark fw-bold" href="{{ path('app_lesson_show', {'id': lesson.id}) }}">
+                        {{ lesson.title }}
+                    </a>
                 </td>
             </tr>
         {% else %}
@@ -30,5 +34,7 @@
         {% endfor %}
     </table>
     
-    <a href="{{ path('app_lesson_new', {'course_id': course.id}) }}">Create new</a>
+    <a class="btn btn-success text-white" href="{{ path('app_lesson_new', {'course_id': course.id}) }}">
+        Create new lesson
+    </a>
 {% endblock %}

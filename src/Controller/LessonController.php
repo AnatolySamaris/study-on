@@ -14,14 +14,6 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/lessons')]
 final class LessonController extends AbstractController
 {
-    #[Route(name: 'app_lesson_index', methods: ['GET'])]
-    public function index(LessonRepository $lessonRepository): Response
-    {
-        return $this->render('lesson/index.html.twig', [
-            'lessons' => $lessonRepository->findAll(),
-        ]);
-    }
-
     #[Route('/new', name: 'app_lesson_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
@@ -47,6 +39,7 @@ final class LessonController extends AbstractController
         return $this->render('lesson/new.html.twig', [
             'lesson' => $lesson,
             'form' => $form,
+            'course_id' => $courseId
         ]);
     }
 
@@ -56,7 +49,7 @@ final class LessonController extends AbstractController
         $course = $lesson->getCourse();
         return $this->render('lesson/show.html.twig', [
             'lesson' => $lesson,
-            'course' => $course
+            'course' => $course,
         ]);
     }
 
@@ -79,7 +72,7 @@ final class LessonController extends AbstractController
         return $this->render('lesson/edit.html.twig', [
             'lesson' => $lesson,
             'form' => $form,
-            'course_title' => $lesson->getCourse()->getTitle()
+            'course' => $lesson->getCourse(),
         ]);
     }
 

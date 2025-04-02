@@ -24,5 +24,7 @@
 /assets/vendor/
 ###< symfony/asset-mapper ###
 
-/local.mk
-/phpcs.xml
+local.mk
+phpcs.xml
+.yarn
+node_modules
