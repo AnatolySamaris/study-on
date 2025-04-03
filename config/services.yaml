@@ -20,6 +20,8 @@ services:
     App\:
         resource: '../src/'
         exclude:
+            - '../src/Listeners/'
+            - '../src/DataTransformers/'
             - '../src/DependencyInjection/'
             - '../src/Entity/'
             - '../src/Kernel.php'
