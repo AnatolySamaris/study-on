@@ -6,9 +6,11 @@ use App\Repository\CourseRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: CourseRepository::class)]
+#[UniqueEntity(fields: ['code'], message: 'Курс с таким кодом уже существует')]
 class Course
 {
     #[ORM\Id]
@@ -65,9 +67,9 @@ class Course
         return $this->code;
     }
 
-    public function setCode(string $code): static
+    public function setCode(?string $code): static
     {
-        $this->code = $code;
+        $this->code = $code ?? '';
 
         return $this;
     }
@@ -77,9 +79,9 @@ class Course
         return $this->title;
     }
 
-    public function setTitle(string $title): static
+    public function setTitle(?string $title): static
     {
-        $this->title = $title;
+        $this->title = $title ?? '';
 
         return $this;
     }
