@@ -123,6 +123,13 @@ class LessonControllerTest extends WebTestCase
         $this->assertNotNull($newLesson);
         $this->assertEquals('Test Title', $newLesson->getTitle());
         $this->assertEquals('Test Content', $newLesson->getContent());
+
+        // Проверка на фронтенде, что урок добавился
+        $crawler = $client->click($firstCourseLink);
+        $this->assertResponseIsSuccessful();
+
+        $shownCourseLessons = $crawler->filter('tr');
+        $this->assertCount($courseLessonsAfterCount, $shownCourseLessons);
     }
 
     public function testNewLessonPostEmptyTitle(): void
@@ -401,6 +408,7 @@ class LessonControllerTest extends WebTestCase
         $this->assertResponseIsSuccessful();
 
         $courseId = basename(parse_url($firstCourseLink->getUri(), PHP_URL_PATH));
+        $courseLessonsCount = count($entityManager->getRepository(Course::class)->find($courseId)->getLessons());
 
         $formButton = $crawler->selectButton('Update');
         $form = $formButton->form();
@@ -424,6 +432,13 @@ class LessonControllerTest extends WebTestCase
                 'content' => 'TEST LESSON CONTENT'
             ]);
         $this->assertNotNull($updatedLesson);
+
+        // Проверка на фронтенде, что число уроков не изменилось
+        $crawler = $client->click($firstCourseLink);
+        $this->assertResponseIsSuccessful();
+
+        $shownCourseLessons = $crawler->filter('tr');
+        $this->assertCount($courseLessonsCount, $shownCourseLessons);
     }
 
     public function testEditLessonPostEmptyTitle(): void

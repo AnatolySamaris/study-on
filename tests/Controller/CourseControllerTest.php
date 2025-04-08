@@ -86,6 +86,13 @@ class CourseControllerTest extends WebTestCase
         $this->assertNotNull($newCourse);
         $this->assertEquals('Test Course', $newCourse->getTitle());
         $this->assertEquals('Test Description', $newCourse->getDescription());
+
+        // Проверка на фронтенде
+        $crawler = $client->request('GET', '/courses');
+        $this->assertResponseIsSuccessful();
+        
+        $shownCourses = $crawler->filter('table.table tbody tr');
+        $this->assertCount($courseAfterCount, $shownCourses);
     }
 
     public function testNewPostEmptyCode(): void
@@ -288,6 +295,9 @@ class CourseControllerTest extends WebTestCase
     {
         $client = static::createClient();
         $entityManager = $client->getContainer()->get('doctrine')->getManager();
+
+        // Для проверки что количество не поменялось после редактирования
+        $coursesCount = count($entityManager->getRepository(Course::class)->findAll());
         
         $crawler = $client->request('GET', '/courses');
         $this->assertResponseIsSuccessful();
@@ -318,6 +328,13 @@ class CourseControllerTest extends WebTestCase
         $updatedCourse = $entityManager->getRepository(Course::class)->findOneBy(['code' => $courseCode]);
         $this->assertEquals('TEST TITLE EDIT', $updatedCourse->getTitle());
         $this->assertEquals('TEST DESCRIPTION EDIT', $updatedCourse->getDescription());
+
+        // Проверка на фронтенде, что число курсов не поменялось
+        $crawler = $client->request('GET', '/courses');
+        $this->assertResponseIsSuccessful();
+        
+        $shownCourses = $crawler->filter('table.table tbody tr');
+        $this->assertCount($coursesCount, $shownCourses);
     }
 
     public function testEditPostEmptyCode(): void
