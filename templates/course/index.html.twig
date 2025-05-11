@@ -5,6 +5,9 @@
 {% block body %}
     <h1>Courses</h1>
 
+    <a class="btn btn-primary text-white" href="{{ path('app_profile') }}">Profile</a>
+    <a class="btn btn-success text-white" href="{{ path('app_course_new') }}">Create new</a>
+
     <table class="table">
         <thead>
             <tr>
@@ -29,6 +32,4 @@
         {% endfor %}
         </tbody>
     </table>
-
-    <a class="btn btn-success text-white" href="{{ path('app_course_new') }}">Create new</a>
 {% endblock %}

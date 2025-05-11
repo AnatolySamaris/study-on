@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace App\Doctrine\EventListener;
 
+use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Schema\PostgreSQLSchemaManager;
+use Doctrine\DBAL\Schema\SchemaException;
 use Doctrine\ORM\Tools\Event\GenerateSchemaEventArgs;
 
 final class FixPostgreSQLDefaultSchemaListener
 {
     /**
-     * @throws \Doctrine\DBAL\Exception
+     * @throws SchemaException
+     * @throws Exception
      */
     public function postGenerateSchema(GenerateSchemaEventArgs $args): void
     {

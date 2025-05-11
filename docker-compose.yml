@@ -43,3 +43,7 @@ services:
     volumes:
       - ${PWD}:/app
       - ${PWD}/.yarn:/yarn
+networks:
+  default:
+    external:
+      name: study-onbilling_default
