@@ -5,8 +5,17 @@
 {% block body %}
     <h1>Courses</h1>
 
-    <a class="btn btn-primary text-white" href="{{ path('app_profile') }}">Profile</a>
-    <a class="btn btn-success text-white" href="{{ path('app_course_new') }}">Create new</a>
+    {% if not app.user %}
+        <a class="btn btn-primary text-white" href="{{ path('app_login') }}">Log In</a>
+        {# <a class="btn btn-success text-white" href="{{ path('app_register') }}">Register</a> #}
+    {% endif %}
+
+    {% if is_granted('ROLE_USER') %}
+        <a class="btn btn-primary text-white" href="{{ path('app_profile') }}">Profile</a>
+    {% endif %}
+    {% if is_granted('ROLE_SUPER_ADMIN') %}
+        <a class="btn btn-success text-white" href="{{ path('app_course_new') }}">Create new</a>
+    {% endif %}
 
     <table class="table">
         <thead>

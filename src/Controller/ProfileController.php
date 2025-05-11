@@ -6,6 +6,7 @@ use App\Service\BillingClient;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 final class ProfileController extends AbstractController
 {
@@ -15,13 +16,14 @@ final class ProfileController extends AbstractController
     }
 
     #[Route('/profile', name: 'app_profile')]
+    #[IsGranted("ROLE_USER")]
     public function index(): Response
     {
         $user = $this->getUser();
 
-        if (!$user) {
-            return $this->redirectToRoute('app_login');
-        }
+        // if (!$user) {
+        //     return $this->redirectToRoute('app_login');
+        // }
 
         $billingUser = $this->billingClient
             ->getCurrentUser(
