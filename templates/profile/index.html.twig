@@ -16,6 +16,7 @@
         <b>Role:</b> {{ user_role == "ROLE_USER" ? "User" : (user_role == "ROLE_SUPER_ADMIN" ? "Admin" : "Unauthorized") }}
     </p>
     <a class="btn btn-primary text-white" href="{{ path('app_course_index') }}">Back to courses</a>
+    <a class="btn btn-danger text-white" href=" {{ path('app_logout') }}">Logout</a>
 </div>
 
 {% endblock %}
