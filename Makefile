@@ -7,7 +7,7 @@ up:
 	@${COMPOSE} up -d
 
 down:
-	@${COMPOSE} down
+	@${COMPOSE} down --remove-orphans
 
 clear:
 	@${CONSOLE} cache:clear

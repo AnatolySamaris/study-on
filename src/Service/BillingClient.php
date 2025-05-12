@@ -89,7 +89,7 @@ class BillingClient
 
         $data = json_decode($response['data'], true);
 
-        if ($response['StatusCode'] == 400) {
+        if ($response['statusCode'] == 400) {
             throw new InvalidCredentialsException($data['error']);
         }
 

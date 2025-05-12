@@ -1,0 +1,15 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Registration{% endblock %}
+
+{% block body %}
+
+    {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+
+    <h1>Registration</h1>
+
+    {{ include('security/_form_register.html.twig') }}
+
+{% endblock %}
