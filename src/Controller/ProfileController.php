@@ -21,10 +21,6 @@ final class ProfileController extends AbstractController
     {
         $user = $this->getUser();
 
-        // if (!$user) {
-        //     return $this->redirectToRoute('app_login');
-        // }
-
         $billingUser = $this->billingClient
             ->getCurrentUser(
                 $user->getApiToken()

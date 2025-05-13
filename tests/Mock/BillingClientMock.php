@@ -2,10 +2,10 @@
 
 namespace App\Tests\Mock;
 
-use App\Exception\CustomUserMessageAuthenticationException;
 use App\Exception\InvalidCredentialsException;
 use App\Security\User;
 use App\Service\BillingClient;
+use Symfony\Component\Security\Core\Exception\AuthenticationException;
 
 class BillingClientMock extends BillingClient
 {
@@ -56,7 +56,6 @@ class BillingClientMock extends BillingClient
         } else {
             throw new InvalidCredentialsException('User with given username not found');
         }
-        
         return [
             'user' => $username,
             'token' => $token,
@@ -72,6 +71,29 @@ class BillingClientMock extends BillingClient
 
         $user = new User();
         $user->setApiToken($token);
+
+        return $user;
+    }
+
+    public function getCurrentUser(string $token): User
+    {
+        $jwtParts = explode('.', $token);
+        $payload = json_decode(base64_decode($jwtParts[1]), JSON_OBJECT_AS_ARRAY);
+        $user = new User();
+
+        if ($payload['username'] === $this->user['email']) {
+            $user->setEmail($this->user['email'])
+                ->setBalance($this->user['balance'])
+                ->setRoles(json_decode($payload['roles'], true))
+                ->setApiToken($token);
+        } elseif ($payload['username'] === $this->admin['email']) {
+            $user->setEmail($this->admin['email'])
+                ->setBalance($this->admin['balance'])
+                ->setRoles(json_decode($payload['roles'], true))
+                ->setApiToken($token);
+        } else {
+            throw new AuthenticationException('Invalid JWT token');
+        }
 
         return $user;
     }

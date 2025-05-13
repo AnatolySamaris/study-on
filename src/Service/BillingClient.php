@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Exception\BillingUnavailableException;
 use App\Exception\InvalidCredentialsException;
 use App\Security\User;
+use Symfony\Component\Security\Core\Exception\AuthenticationException;
 
 class BillingClient
 {
@@ -112,6 +113,12 @@ class BillingClient
         );
 
         $userData = json_decode($response['data'], true);
+
+        if ($response['statusCode'] == 401 || $response['statusCode'] == 404) {
+            throw new AuthenticationException($userData['error']);
+        } elseif ($response['statusCode'] == 500) {
+            throw new BillingUnavailableException('Service is temporarily unavailable. Try again later.');
+        }
 
         $user = new User();
         $user->setApiToken($token);

@@ -2,6 +2,7 @@
 
 namespace App\Security;
 
+use Exception;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 class User implements UserInterface
@@ -108,7 +109,11 @@ class User implements UserInterface
         );
 
         $this->setEmail($payload['username']);
-        $this->setRoles($payload['roles']);
+        if (is_array($payload['roles'])) {
+            $this->setRoles($payload['roles']);
+        } else {
+            $this->setRoles(json_decode($payload['roles'], true));
+        }
 
         return $this;
     }

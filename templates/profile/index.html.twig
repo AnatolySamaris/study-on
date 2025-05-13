@@ -6,13 +6,13 @@
 
 <div class="position-absolute top-50 start-50 translate-middle">
     <h2>Profile info</h2>
-    <p>
+    <p class="username">
         <b>Username:</b> {{ user_username }}
     </p>
-    <p>
+    <p class="balance">
         <b>Balance:</b> {{ user_balance }} rub
     </p>
-    <p>
+    <p class="role">
         <b>Role:</b> {{ user_role == "ROLE_USER" ? "User" : (user_role == "ROLE_SUPER_ADMIN" ? "Admin" : "Unauthorized") }}
     </p>
     <a class="btn btn-primary text-white" href="{{ path('app_course_index') }}">Back to courses</a>
