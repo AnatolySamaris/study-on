@@ -128,4 +128,28 @@ class BillingClient
 
         return $user;
     }
+
+    public function refreshToken(User $user): User
+    {
+        $response = $this->request(
+            $this->billingUrl . 'token/refresh',
+            [
+                'refresh_token' => $user->getRefreshToken()
+            ],
+            [
+                'Content-Type' => 'application/json',
+            ],
+            'POST'
+        );
+
+        $tokenData = json_decode(
+            $response['data'],
+            true
+        );
+
+        $user->setRefreshToken($tokenData['refresh_token']);
+        $user->setApiToken($tokenData['token']);
+
+        return $user;
+    }
 }

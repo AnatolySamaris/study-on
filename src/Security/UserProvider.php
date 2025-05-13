@@ -3,6 +3,7 @@
 namespace App\Security;
 
 use App\Service\BillingClient;
+use DateTimeZone;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\Exception\UserNotFoundException;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -54,7 +55,21 @@ class UserProvider implements UserProviderInterface, PasswordUpgraderInterface
             throw new UnsupportedUserException(sprintf('Invalid user class "%s".', $user::class));
         }
 
-        return $user;
+        $payload_str = explode('.', $user->getApiToken())[1];
+        $payload = json_decode(
+            base64_decode($payload_str),
+            true
+        );
+
+        $expiredTime = new \DateTime('@' . $payload['exp']);
+        $now = new \DateTime();
+
+        if ($expiredTime->getTimezone()->getName() !== $now->getTimezone()->getName()) {
+            $expiredTime->setTimezone(new DateTimeZone('Europe/Moscow'));
+            $now->setTimezone(new DateTimeZone('Europe/Moscow'));
+        }
+
+        return $expiredTime <= $now ? $this->billingClient->refreshToken($user) : $user;
     }
 
     /**
