@@ -2,6 +2,8 @@
 
 namespace App\Exception;
 
-class CustomUserMessageAuthenticationException extends \Exception
+use Symfony\Component\Security\Core\Exception\AuthenticationException;
+
+class CustomUserMessageAuthenticationException extends AuthenticationException
 {
 }
