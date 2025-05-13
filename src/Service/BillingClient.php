@@ -115,7 +115,7 @@ class BillingClient
         $userData = json_decode($response['data'], true);
 
         if ($response['statusCode'] == 401 || $response['statusCode'] == 404) {
-            throw new AuthenticationException($userData['error']);
+            throw new AuthenticationException($userData['message']);
         } elseif ($response['statusCode'] == 500) {
             throw new BillingUnavailableException('Service is temporarily unavailable. Try again later.');
         }

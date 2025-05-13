@@ -3,8 +3,12 @@
 namespace App\Tests\Controller;
 
 use App\Entity\Course;
+use App\Service\BillingClient;
+use App\Tests\Mock\BillingClientMock;
+use Security;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 class CourseControllerTest extends WebTestCase
 {
@@ -44,25 +48,56 @@ class CourseControllerTest extends WebTestCase
     public function testNewCourseGet(): void
     {
         $client = static::createClient();
+        $client->disableReboot();
+        $client->getContainer()->set(
+            BillingClient::class,
+            new BillingClientMock()
+        );
 
+        // Логин
+        $crawler = $client->request('GET', '/login');
+        $submitBtn = $crawler->selectButton('Sign in');
+        $login = $submitBtn->form([
+            'email' => 'admin@mail.ru', # Логинимся как админ
+            'password' => 'password',
+        ]);
+        $client->submit($login);
         $crawler = $client->request('GET', '/courses');
-        $link = $crawler->filter('a:contains("Create new")')->link();
-        $crawler = $client->click($link);
 
-        $this->assertResponseIsSuccessful();
+        // Создание курса
+        $link = $crawler->selectLink('Create new')->link();
+        $crawler = $client->click($link);
+        $this->assertEquals('/courses/new', $client->getRequest()->getPathInfo());
     }
 
     public function testNewCoursePostValidData(): void
     {
         $client = static::createClient();
+        $client->disableReboot();
+        $client->getContainer()->set(
+            BillingClient::class,
+            new BillingClientMock()
+        );
+
         $entityManager = $client->getContainer()->get('doctrine')->getManager();
 
         $coursesBefore = $entityManager->getRepository(Course::class)->findAll();
         $coursesBeforeCount = count($coursesBefore);
-        
+
+        // Логин
+        $crawler = $client->request('GET', '/login');
+        $submitBtn = $crawler->selectButton('Sign in');
+        $login = $submitBtn->form([
+            'email' => 'admin@mail.ru', # Логинимся как админ
+            'password' => 'password',
+        ]);
+        $client->submit($login);
         $crawler = $client->request('GET', '/courses');
-        $link = $crawler->filter('a:contains("Create new")')->link();
+
+        // Создание курса
+        $link = $crawler->selectLink('Create new')->link();
         $crawler = $client->click($link);
+        $this->assertEquals('/courses/new', $client->getRequest()->getPathInfo());
 
         $this->assertResponseIsSuccessful();
 
@@ -98,8 +133,22 @@ class CourseControllerTest extends WebTestCase
     public function testNewPostEmptyCode(): void
     {
         $client = static::createClient();
+        $client->disableReboot();
+        $client->getContainer()->set(
+            BillingClient::class,
+            new BillingClientMock()
+        );
 
+        // Логин
+        $crawler = $client->request('GET', '/login');
+        $submitBtn = $crawler->selectButton('Sign in');
+        $login = $submitBtn->form([
+            'email' => 'admin@mail.ru', # Логинимся как админ
+            'password' => 'password',
+        ]);
+        $client->submit($login);
         $crawler = $client->request('GET', '/courses');
+
         $link = $crawler->filter('a:contains("Create new")')->link();
         $crawler = $client->click($link);
 
@@ -127,6 +176,22 @@ class CourseControllerTest extends WebTestCase
     public function testNewPostNotUniqueCode(): void
     {
         $client = static::createClient();
+        $client->disableReboot();
+        $client->getContainer()->set(
+            BillingClient::class,
+            new BillingClientMock()
+        );
+
+        // Логин
+        $crawler = $client->request('GET', '/login');
+        $submitBtn = $crawler->selectButton('Sign in');
+        $login = $submitBtn->form([
+            'email' => 'admin@mail.ru', # Логинимся как админ
+            'password' => 'password',
+        ]);
+        $client->submit($login);
+        $crawler = $client->request('GET', '/courses');
+
         $entityManager = $client->getContainer()->get('doctrine')->getManager();
 
         // Получаем какой-нибудь курс из бд
@@ -160,8 +225,22 @@ class CourseControllerTest extends WebTestCase
     public function testNewPostInvalidCode(): void
     {
         $client = static::createClient();
+        $client->disableReboot();
+        $client->getContainer()->set(
+            BillingClient::class,
+            new BillingClientMock()
+        );
 
+        // Логин
+        $crawler = $client->request('GET', '/login');
+        $submitBtn = $crawler->selectButton('Sign in');
+        $login = $submitBtn->form([
+            'email' => 'admin@mail.ru', # Логинимся как админ
+            'password' => 'password',
+        ]);
+        $client->submit($login);
         $crawler = $client->request('GET', '/courses');
+
         $link = $crawler->filter('a:contains("Create new")')->link();
         $crawler = $client->click($link);
 
@@ -189,8 +268,22 @@ class CourseControllerTest extends WebTestCase
     public function testNewPostEmptyTitle(): void
     {
         $client = static::createClient();
+        $client->disableReboot();
+        $client->getContainer()->set(
+            BillingClient::class,
+            new BillingClientMock()
+        );
 
+        // Логин
+        $crawler = $client->request('GET', '/login');
+        $submitBtn = $crawler->selectButton('Sign in');
+        $login = $submitBtn->form([
+            'email' => 'admin@mail.ru', # Логинимся как админ
+            'password' => 'password',
+        ]);
+        $client->submit($login);
         $crawler = $client->request('GET', '/courses');
+
         $link = $crawler->filter('a:contains("Create new")')->link();
         $crawler = $client->click($link);
 
@@ -218,8 +311,22 @@ class CourseControllerTest extends WebTestCase
     public function testNewPostLongTitle(): void
     {
         $client = static::createClient();
+        $client->disableReboot();
+        $client->getContainer()->set(
+            BillingClient::class,
+            new BillingClientMock()
+        );
 
+        // Логин
+        $crawler = $client->request('GET', '/login');
+        $submitBtn = $crawler->selectButton('Sign in');
+        $login = $submitBtn->form([
+            'email' => 'admin@mail.ru', # Логинимся как админ
+            'password' => 'password',
+        ]);
+        $client->submit($login);
         $crawler = $client->request('GET', '/courses');
+
         $link = $crawler->filter('a:contains("Create new")')->link();
         $crawler = $client->click($link);
 
@@ -247,8 +354,22 @@ class CourseControllerTest extends WebTestCase
     public function testNewPostLongDescription(): void
     {
         $client = static::createClient();
+        $client->disableReboot();
+        $client->getContainer()->set(
+            BillingClient::class,
+            new BillingClientMock()
+        );
 
+        // Логин
+        $crawler = $client->request('GET', '/login');
+        $submitBtn = $crawler->selectButton('Sign in');
+        $login = $submitBtn->form([
+            'email' => 'admin@mail.ru', # Логинимся как админ
+            'password' => 'password',
+        ]);
+        $client->submit($login);
         $crawler = $client->request('GET', '/courses');
+
         $link = $crawler->filter('a:contains("Create new")')->link();
         $crawler = $client->click($link);
 
@@ -276,6 +397,20 @@ class CourseControllerTest extends WebTestCase
     public function testEditGet(): void
     {
         $client = static::createClient();
+        $client->disableReboot();
+        $client->getContainer()->set(
+            BillingClient::class,
+            new BillingClientMock()
+        );
+
+        // Логин
+        $crawler = $client->request('GET', '/login');
+        $submitBtn = $crawler->selectButton('Sign in');
+        $login = $submitBtn->form([
+            'email' => 'admin@mail.ru', # Логинимся как админ
+            'password' => 'password',
+        ]);
+        $client->submit($login);
 
         $crawler = $client->request('GET', '/courses');
         $this->assertResponseIsSuccessful();
@@ -294,6 +429,21 @@ class CourseControllerTest extends WebTestCase
     public function testEditPostWithValidData(): void
     {
         $client = static::createClient();
+        $client->disableReboot();
+        $client->getContainer()->set(
+            BillingClient::class,
+            new BillingClientMock()
+        );
+
+        // Логин
+        $crawler = $client->request('GET', '/login');
+        $submitBtn = $crawler->selectButton('Sign in');
+        $login = $submitBtn->form([
+            'email' => 'admin@mail.ru', # Логинимся как админ
+            'password' => 'password',
+        ]);
+        $client->submit($login);
+
         $entityManager = $client->getContainer()->get('doctrine')->getManager();
 
         // Для проверки что количество не поменялось после редактирования
@@ -340,6 +490,21 @@ class CourseControllerTest extends WebTestCase
     public function testEditPostEmptyCode(): void
     {
         $client = static::createClient();
+        $client->disableReboot();
+        $client->getContainer()->set(
+            BillingClient::class,
+            new BillingClientMock()
+        );
+
+        // Логин
+        $crawler = $client->request('GET', '/login');
+        $submitBtn = $crawler->selectButton('Sign in');
+        $login = $submitBtn->form([
+            'email' => 'admin@mail.ru', # Логинимся как админ
+            'password' => 'password',
+        ]);
+        $client->submit($login);
+
         $entityManager = $client->getContainer()->get('doctrine')->getManager();
 
         $crawler = $client->request('GET', '/courses');
@@ -379,6 +544,21 @@ class CourseControllerTest extends WebTestCase
     public function testEditPostNotUniqueCode(): void
     {
         $client = static::createClient();
+        $client->disableReboot();
+        $client->getContainer()->set(
+            BillingClient::class,
+            new BillingClientMock()
+        );
+
+        // Логин
+        $crawler = $client->request('GET', '/login');
+        $submitBtn = $crawler->selectButton('Sign in');
+        $login = $submitBtn->form([
+            'email' => 'admin@mail.ru', # Логинимся как админ
+            'password' => 'password',
+        ]);
+        $client->submit($login);
+
         $entityManager = $client->getContainer()->get('doctrine')->getManager();
 
         $crawler = $client->request('GET', '/courses');
@@ -427,6 +607,21 @@ class CourseControllerTest extends WebTestCase
     public function testEditPostInvalidCode(): void
     {
         $client = static::createClient();
+        $client->disableReboot();
+        $client->getContainer()->set(
+            BillingClient::class,
+            new BillingClientMock()
+        );
+
+        // Логин
+        $crawler = $client->request('GET', '/login');
+        $submitBtn = $crawler->selectButton('Sign in');
+        $login = $submitBtn->form([
+            'email' => 'admin@mail.ru', # Логинимся как админ
+            'password' => 'password',
+        ]);
+        $client->submit($login);
+
         $entityManager = $client->getContainer()->get('doctrine')->getManager();
 
         $crawler = $client->request('GET', '/courses');
@@ -466,6 +661,21 @@ class CourseControllerTest extends WebTestCase
     public function testEditPostEmptyTitle(): void
     {
         $client = static::createClient();
+        $client->disableReboot();
+        $client->getContainer()->set(
+            BillingClient::class,
+            new BillingClientMock()
+        );
+
+        // Логин
+        $crawler = $client->request('GET', '/login');
+        $submitBtn = $crawler->selectButton('Sign in');
+        $login = $submitBtn->form([
+            'email' => 'admin@mail.ru', # Логинимся как админ
+            'password' => 'password',
+        ]);
+        $client->submit($login);
+
         $entityManager = $client->getContainer()->get('doctrine')->getManager();
 
         $crawler = $client->request('GET', '/courses');
@@ -497,8 +707,9 @@ class CourseControllerTest extends WebTestCase
             '#course_title + .invalid-feedback',
             'Название курса не может быть пустым'
         );
-        
+
         // Проверяем, что курс не изменился
+        $entityManager->clear();
         $sameCourse = $entityManager->getRepository(Course::class)->findOneBy(['code' => $courseCode]);
         $this->assertEquals($courseTitleBefore, $sameCourse->getTitle());
     }
@@ -506,6 +717,21 @@ class CourseControllerTest extends WebTestCase
     public function testEditPostLongTitle(): void
     {
         $client = static::createClient();
+        $client->disableReboot();
+        $client->getContainer()->set(
+            BillingClient::class,
+            new BillingClientMock()
+        );
+
+        // Логин
+        $crawler = $client->request('GET', '/login');
+        $submitBtn = $crawler->selectButton('Sign in');
+        $login = $submitBtn->form([
+            'email' => 'admin@mail.ru', # Логинимся как админ
+            'password' => 'password',
+        ]);
+        $client->submit($login);
+
         $entityManager = $client->getContainer()->get('doctrine')->getManager();
 
         $crawler = $client->request('GET', '/courses');
@@ -539,6 +765,7 @@ class CourseControllerTest extends WebTestCase
         );
         
         // Проверяем, что курс не изменился
+        $entityManager->clear();
         $sameCourse = $entityManager->getRepository(Course::class)->findOneBy(['code' => $courseCode]);
         $this->assertEquals($courseTitleBefore, $sameCourse->getTitle());
     }
@@ -546,6 +773,21 @@ class CourseControllerTest extends WebTestCase
     public function testEditPostLongDescription(): void
     {
         $client = static::createClient();
+        $client->disableReboot();
+        $client->getContainer()->set(
+            BillingClient::class,
+            new BillingClientMock()
+        );
+
+        // Логин
+        $crawler = $client->request('GET', '/login');
+        $submitBtn = $crawler->selectButton('Sign in');
+        $login = $submitBtn->form([
+            'email' => 'admin@mail.ru', # Логинимся как админ
+            'password' => 'password',
+        ]);
+        $client->submit($login);
+
         $entityManager = $client->getContainer()->get('doctrine')->getManager();
 
         $crawler = $client->request('GET', '/courses');
@@ -579,6 +821,7 @@ class CourseControllerTest extends WebTestCase
         );
         
         // Проверяем, что курс не изменился
+        $entityManager->clear();
         $sameCourse = $entityManager->getRepository(Course::class)->findOneBy(['code' => $courseCode]);
         $this->assertEquals($courseDescriptionBefore, $sameCourse->getDescription());
     }
@@ -586,6 +829,21 @@ class CourseControllerTest extends WebTestCase
     public function testDelete(): void
     {
         $client = static::createClient();
+        $client->disableReboot();
+        $client->getContainer()->set(
+            BillingClient::class,
+            new BillingClientMock()
+        );
+
+        // Логин
+        $crawler = $client->request('GET', '/login');
+        $submitBtn = $crawler->selectButton('Sign in');
+        $login = $submitBtn->form([
+            'email' => 'admin@mail.ru', # Логинимся как админ
+            'password' => 'password',
+        ]);
+        $client->submit($login);
+        
         $entityManager = $client->getContainer()->get('doctrine')->getManager();
 
         $coursesBeforeCount = count(
@@ -609,5 +867,91 @@ class CourseControllerTest extends WebTestCase
             $entityManager->getRepository(Course::class)->findAll()
         );
         $this->assertEquals($coursesBeforeCount - 1, $coursesAfterCount);
+    }
+
+    public function testGuestUserAccessNewCourseGet(): void
+    {
+        $client = static::createClient();
+
+        // Переходим напрямую на создание курса
+        $crawler = $client->request('GET', 'courses/new');
+
+        $this->assertResponseStatusCodeSame(302);
+        $crawler = $client->followRedirect();
+
+        // Проверяем, что оказались на странице логина
+        $this->assertEquals('/login', $client->getRequest()->getPathInfo());
+    }
+
+    public function testGuestUserAccessEditCourseGet(): void
+    {
+        $client = static::createClient();
+
+        $entityManager = $client->getContainer()->get('doctrine')->getManager();
+
+        $course = $entityManager->getRepository(Course::class)->findOneBy(['title' => 'Python Junior']);
+
+        // Переходим напрямую на редактирование курса
+        $crawler = $client->request('GET', 'courses/' . $course->getId() . '/edit');
+
+        $this->assertResponseStatusCodeSame(302);
+        $crawler = $client->followRedirect();
+
+        // Проверяем, что оказались на странице логина
+        $this->assertEquals('/login', $client->getRequest()->getPathInfo());
+    }
+
+    public function testAccessDeniedNewCourseGet(): void
+    {
+        $client = static::createClient();
+        $client->disableReboot();
+        $client->getContainer()->set(
+            BillingClient::class,
+            new BillingClientMock()
+        );
+
+        // Логин
+        $crawler = $client->request('GET', '/login');
+        $submitBtn = $crawler->selectButton('Sign in');
+        $login = $submitBtn->form([
+            'email' => 'user@mail.ru', # Логинимся как юзер
+            'password' => 'password',
+        ]);
+        $client->submit($login);
+
+        // Переходим напрямую на создание курса
+        $crawler = $client->request('GET', 'courses/new');
+
+        // Проверяем, что поймали исключение Access Denied
+        $this->assertResponseStatusCodeSame(403);
+    }
+
+    public function testAccessDeniedEditCourseGet(): void
+    {
+        $client = static::createClient();
+        $client->disableReboot();
+        $client->getContainer()->set(
+            BillingClient::class,
+            new BillingClientMock()
+        );
+
+        // Логин
+        $crawler = $client->request('GET', '/login');
+        $submitBtn = $crawler->selectButton('Sign in');
+        $login = $submitBtn->form([
+            'email' => 'user@mail.ru', # Логинимся как юзер
+            'password' => 'password',
+        ]);
+        $client->submit($login);
+
+        $entityManager = $client->getContainer()->get('doctrine')->getManager();
+
+        $course = $entityManager->getRepository(Course::class)->findOneBy(['title' => 'Python Junior']);
+
+        // Переходим напрямую на редактирование курса
+        $crawler = $client->request('GET', 'courses/' . $course->getId() . '/edit');
+
+        // Проверяем, что поймали исключение Access Denied
+        $this->assertResponseStatusCodeSame(403);
     }
 }

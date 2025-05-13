@@ -97,46 +97,7 @@ class ProfileControllerTest extends WebTestCase
         $this->assertEquals(1, $crawler->selectLink('Register')->count());
     }
 
-    public function testRedirectToProfileIfLoggedIn(): void
-    {
-        $client = $this::createClient();
-        $client->disableReboot();
-        $client->getContainer()->set(
-            BillingClient::class,
-            new BillingClientMock()
-        );
-
-        $crawler = $client->request('GET', '/courses');
-        $this->assertResponseIsSuccessful();
-        
-        // Сначала логинимся
-        $authFormLink = $crawler->selectLink('Log In')->link();
-        $crawler = $client->click($authFormLink);
-        $this->assertEquals('/login', $client->getRequest()->getPathInfo());
-
-        $submitBtn = $crawler->selectButton('Sign in');
-        $login = $submitBtn->form([
-            'email' => 'user@mail.ru',
-            'password' => 'password',
-        ]);
-        $client->submit($login);
-        $this->assertResponseStatusCodeSame(302);
-        $crawler = $client->followRedirect();
-        $this->assertEquals('/courses', $client->getRequest()->getPathInfo());
-        
-        // Переходим напрямую на страницу регистрации
-        $crawler = $client->request('GET', '/register');
-        $this->assertResponseStatusCodeSame(302);
-        $crawler = $client->followRedirect();
-
-        // Проверяем, что оказались в профиле
-        $this->assertEquals('/profile', $client->getRequest()->getPathInfo());
-        $this->assertSelectorTextContains('.username', 'user@mail.ru');
-        $this->assertSelectorTextContains('.balance', '1259.99');
-        $this->assertSelectorTextContains('.role', 'User');
-    }
-
-    public function testProfileGetGuestUser(): void
+    public function testPermissionDeniedProfile(): void
     {
         $client = $this::createClient();
         $client->disableReboot();

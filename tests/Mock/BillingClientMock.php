@@ -22,6 +22,13 @@ class BillingClientMock extends BillingClient
         'balance' => 99999.99,
     ];
 
+    private $newUser = [
+        'email' => 'new_user@mail.ru',
+        'password' => 'password',
+        'roles' => ['ROLE_USER'],
+        'balance' => 0.0
+    ];
+
     private function generateToken(string $username, array $roles): string
     {
         $signing_key = "signingKey";
@@ -44,11 +51,14 @@ class BillingClientMock extends BillingClient
 
     public function auth(string $username, string $password): array
     {
-
-        if ($username === $this->user['email'] || $username === $this->admin['email']) {
+        if ($username === $this->user['email']) {
             if ($password === $this->user['password']) {
                 $token = $this->generateToken($username, $this->user['roles']);
-            } elseif ($password === $this->admin['password']) {
+            } else {
+                throw new InvalidCredentialsException('Invalid password');
+            }
+        } elseif ($username === $this->admin['email']) {
+            if ($password === $this->user['password']) {
                 $token = $this->generateToken($username, $this->admin['roles']);
             } else {
                 throw new InvalidCredentialsException('Invalid password');
@@ -56,6 +66,7 @@ class BillingClientMock extends BillingClient
         } else {
             throw new InvalidCredentialsException('User with given username not found');
         }
+
         return [
             'user' => $username,
             'token' => $token,
@@ -84,12 +95,17 @@ class BillingClientMock extends BillingClient
         if ($payload['username'] === $this->user['email']) {
             $user->setEmail($this->user['email'])
                 ->setBalance($this->user['balance'])
-                ->setRoles(json_decode($payload['roles'], true))
+                ->setRoles($this->user['roles'])
                 ->setApiToken($token);
         } elseif ($payload['username'] === $this->admin['email']) {
             $user->setEmail($this->admin['email'])
                 ->setBalance($this->admin['balance'])
-                ->setRoles(json_decode($payload['roles'], true))
+                ->setRoles($this->admin['roles'])
+                ->setApiToken($token);
+        } elseif ($payload['username'] === $this->newUser['email']) {
+            $user->setEmail($this->newUser['email'])
+                ->setBalance($this->newUser['balance'])
+                ->setRoles($this->newUser['roles'])
                 ->setApiToken($token);
         } else {
             throw new AuthenticationException('Invalid JWT token');
