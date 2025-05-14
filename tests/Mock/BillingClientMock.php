@@ -113,4 +113,103 @@ class BillingClientMock extends BillingClient
 
         return $user;
     }
+
+    public function refreshToken(User $user): User
+    {
+        return $user;
+    }
+
+    public function coursesList(): array
+    {
+        return [
+            [
+                "code" => "python-junior",
+                "type" => 'rent',
+                "price" => 299.99
+            ],
+            [
+                "code" => "introduction-to-neural-networks",
+                "type" => 'rent',
+                "price" => 500.00
+            ],
+            [
+                "code" => "industrial-web-development",
+                "type" => 'pay',
+                "price" => 850.00
+            ],
+            [
+                "code" => "basics-of-computer-vision",
+                "type" => 'pay',
+                "price" => 350.99
+            ],
+            [
+                "code" => "ros2-course",
+                "type" => 'free',
+                "price" => 0.00
+            ],
+        ];
+    }
+
+    public function courseInfoByCode(string $course_code): array
+    {
+        if ($course_code == "python-junior") {
+            return [
+                "code" => "python-junior",
+                "type" => 'rent',
+                "price" => 299.99
+            ];
+        } elseif ($course_code == "introduction-to-neural-networks") {
+            return [
+                "code" => "introduction-to-neural-networks",
+                "type" => 'rent',
+                "price" => 500.00
+            ];
+        } elseif ($course_code == "industrial-web-development") {
+            return [
+                "code" => "industrial-web-development",
+                "type" => 'pay',
+                "price" => 850.00
+            ];
+        } elseif ($course_code == "basics-of-computer-vision") {
+            return [
+                "code" => "basics-of-computer-vision",
+                "type" => 'pay',
+                "price" => 350.99
+            ];
+        } elseif ($course_code == "ros2-course") {
+            return [
+                "code" => "ros2-course",
+                "type" => 'free',
+                "price" => 0.00
+            ];
+        } else {
+            return [
+                "code" => "ros2-course",
+                "type" => 'free',
+                "price" => 0.00
+            ];
+        }
+    }
+
+    public function isCourseAvailable(string $token, string $course_code): bool|string
+    {
+        if ($course_code == "python-junior") {
+            return '30.12.2025';
+        } elseif ($course_code == "introduction-to-neural-networks") {
+            return '30.12.2025';
+        } elseif ($course_code == "industrial-web-development") {
+            return true;
+        } elseif ($course_code == "basics-of-computer-vision") {
+            return true;
+        } elseif ($course_code == "ros2-course") {
+            return true;
+        } else {
+            return true;
+        }
+    }
+
+    public function payCourse(string $token, string $course_code): bool
+    {
+        return true;
+    }
 }

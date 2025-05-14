@@ -14,6 +14,12 @@ class LessonControllerTest extends WebTestCase
     public function testLessonsList(): void
     {
         $client = static::createClient();
+        $client->disableReboot();
+        $client->getContainer()->set(
+            BillingClient::class,
+            new BillingClientMock()
+        );
+
         $entityManager = $client->getContainer()->get('doctrine')->getManager();
 
         $crawler = $client->request('GET', '/courses');
@@ -940,19 +946,18 @@ class LessonControllerTest extends WebTestCase
     public function testGuestUserAccessShowLessonGet(): void
     {
         $client = static::createClient();
+        $client->disableReboot();
+        $client->getContainer()->set(
+            BillingClient::class,
+            new BillingClientMock()
+        );
 
-        $crawler = $client->request('GET', '/courses');
-        $this->assertResponseIsSuccessful();
+        $entityManager = $client->getContainer()->get('doctrine')->getManager();
 
-        $firstCourseLink = $crawler->filter('table.table tbody tr td a')->first()->link();
-        $crawler = $client->click($firstCourseLink);
-        $this->assertResponseIsSuccessful();
+        $lesson = $entityManager->getRepository(Lesson::class)->findOneBy(['title' => 'Python Junior: Lesson 1']);
 
-        $this->assertNotEquals(0, $crawler->filter('tr'));
-
-        // Переход на страницу урока
-        $firstLessonLink = $crawler->filter('tr td a')->first()->link();
-        $crawler = $client->click($firstLessonLink);
+        // Переходим напрямую на страницу урока
+        $crawler = $client->request('GET', 'lessons/' . $lesson->getId());
         
         $this->assertResponseStatusCodeSame(302);
         $crawler = $client->followRedirect();
