@@ -5,7 +5,39 @@
 {% block body %}
     <h1>{{ course.title }}</h1>
 
+    {% if not is_course_available %}
+        {% if course_type != "free"%}
+            <h3>Price: {{ course_price }}</h3>
+        {% else %}
+            <h3>FREE</h3>
+        {% endif %}
+    {% else %}
+        {% if course_type == "pay" %}
+            <h3>Course is available</h3>
+        {% elseif course_type == "rent" %}
+            <h3>Course is available until {{ expires_at }}</h3>
+        {% endif %}
+    {% endif %}
+
     <a class="btn btn-primary text-white" href="{{ path('app_course_index') }}">Back to list</a>
+
+    {% if is_granted('ROLE_USER') %}
+        {% if not is_course_available %}
+            {% if course_type == "rent" %}
+                <a class="btn btn-success text-white" href="{{ path('app_course_pay', {'id': course.id}) }}">
+                    Rent Course
+                </a>
+            {% elseif course_type == "pay" %}
+                <a class="btn btn-success text-white" href="{{ path('app_course_pay', {'id': course.id}) }}">
+                    Buy Course
+                </a>
+            {% else %}
+                <a class="btn btn-success text-white" href="{{ path('app_course_pay', {'id': course.id}) }}">
+                    Get Course
+                </a>
+            {% endif %}
+        {% endif %}
+    {% endif %}
 
     {% if is_granted('ROLE_SUPER_ADMIN') %}
         <a class="btn btn-success text-white" href="{{ path('app_course_edit', {'id': course.id}) }}">Edit</a>
@@ -25,9 +57,15 @@
         {% for lesson in lessons %}
             <tr>
                 <td>
-                    <a class="text-dark fw-bold" href="{{ path('app_lesson_show', {'id': lesson.id}) }}">
-                        {{ lesson.title }}
-                    </a>
+                    {% if is_course_available or is_granted('ROLE_SUPER_ADMIN') %}
+                        <a class="text-dark fw-bold" href="{{ path('app_lesson_show', {'id': lesson.id}) }}">
+                            {{ lesson.title }}
+                        </a>
+                    {% else %}
+                        <a class="text-dark fw-bold">
+                            {{ lesson.title }}
+                        </a>
+                    {% endif %}
                 </td>
             </tr>
         {% else %}

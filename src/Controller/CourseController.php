@@ -5,6 +5,8 @@ namespace App\Controller;
 use App\Entity\Course;
 use App\Form\CourseType;
 use App\Repository\CourseRepository;
+use App\Service\BillingClient;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -15,11 +17,20 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[Route('/courses')]
 final class CourseController extends AbstractController
 {
+    public function __construct(
+        private BillingClient $billingClient
+    ) {
+    }
+
     #[Route(name: 'app_course_index', methods: ['GET'])]
     public function index(CourseRepository $courseRepository): Response
     {
+        $billingCourses = $this->billingClient->coursesList();
+
+        $mergedCoursesInfo = $courseRepository->findAllWithBilling($billingCourses);
+
         return $this->render('course/index.html.twig', [
-            'courses' => $courseRepository->findAll(),
+            'courses' => $mergedCoursesInfo
         ]);
     }
 
@@ -44,14 +55,23 @@ final class CourseController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'app_course_show', methods: ['GET'])]
-    public function show(Course $course): Response
+    #[Route('/{id}/pay', name: 'app_course_pay', methods: ['GET', 'POST'])]
+    #[IsGranted("ROLE_USER")]
+    public function payCourse(Course $course, Request $request): Response
     {
-        $lessons = $course->getLessons();
-        return $this->render('course/show.html.twig', [
-            'course' => $course,
-            'lessons' => $lessons
-        ]);
+        $user = $this->getUser();
+
+        if ($user) {
+            $success = $this->billingClient
+                ->payCourse(
+                    $user->getApiToken(),
+                    $course->getCode()
+                )
+            ;
+            return $this->redirectToRoute('app_course_index', [], Response::HTTP_SEE_OTHER);
+        } else {
+            return $this->redirectToRoute('app_login', [], Response::HTTP_SEE_OTHER);
+        }
     }
 
     #[Route('/{id}/edit', name: 'app_course_edit', methods: ['GET', 'POST'])]
@@ -70,6 +90,43 @@ final class CourseController extends AbstractController
         return $this->render('course/edit.html.twig', [
             'course' => $course,
             'form' => $form,
+        ]);
+    }
+
+    #[Route('/{id}', name: 'app_course_show', methods: ['GET'])]
+    public function show(Course $course): Response
+    {
+        $billingCourse = $this->billingClient->courseInfoByCode($course->getCode());
+
+        $user = $this->getUser();
+
+        if ($user) {
+            $isCourseAvailable = $this->billingClient
+                ->isCourseAvailable(
+                    $user->getApiToken(),
+                    $course->getCode()
+                )
+            ;
+        } else {
+            $isCourseAvailable = false;
+        }
+
+        if ($isCourseAvailable && $billingCourse['type'] == 'rent') {
+            $expires_at = $isCourseAvailable;   // Для rent возвращается дата
+        } else {
+            $expires_at = null;
+        }
+
+        dump($expires_at);
+
+        $lessons = $course->getLessons();
+        return $this->render('course/show.html.twig', [
+            'course' => $course,
+            'lessons' => $lessons,
+            'course_type' => $billingCourse['type'],
+            'course_price' => $billingCourse['price'] ?? 0.00,
+            'is_course_available' => $isCourseAvailable,
+            'expires_at' => $expires_at
         ]);
     }
 

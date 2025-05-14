@@ -23,7 +23,7 @@ class AppFixtures extends Fixture
         for ($i = 0; $i < count($courseTitles); $i++) {
             $course = new Course();
             $course->setTitle($courseTitles[$i]);
-            $course->setCode($i + 1);
+            $course->setCode($this->generateSlug($courseTitles[$i]));
             $course->setDescription('THERE IS "' . $courseTitles[$i] . '" DESCRIPTION.');
             $manager->persist($course);
         }
@@ -45,5 +45,14 @@ class AppFixtures extends Fixture
             }
         }
         $manager->flush();  // Создаем уроки
+    }
+
+    public function generateSlug(string $title): string
+    {
+        $slug = mb_strtolower($title, 'UTF-8');
+        $slug = preg_replace('/[^\w\s-]+/u', '', $slug);
+        $slug = preg_replace('/[\s_-]+/', '-', $slug);
+        $slug = trim($slug, '-');
+        return $slug;
     }
 }
