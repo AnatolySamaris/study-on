@@ -70,6 +70,7 @@ class BillingClientMock extends BillingClient
         return [
             'user' => $username,
             'token' => $token,
+            'refresh_token' => $token   // Заглушка
         ];
     }
 
@@ -82,6 +83,7 @@ class BillingClientMock extends BillingClient
 
         $user = new User();
         $user->setApiToken($token);
+        $user->setRefreshToken($token); // Заглушка
 
         return $user;
     }

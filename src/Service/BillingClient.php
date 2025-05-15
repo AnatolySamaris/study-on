@@ -100,6 +100,7 @@ class BillingClient
 
         $user = new User();
         $user->setApiToken($data['token']);
+        $user->setRefreshToken($data['refresh_token']);
 
         return $user;
     }
