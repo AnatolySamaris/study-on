@@ -55,6 +55,11 @@ class UserProvider implements UserProviderInterface, PasswordUpgraderInterface
             throw new UnsupportedUserException(sprintf('Invalid user class "%s".', $user::class));
         }
 
+        // Проверяем наличие refresh token на всякий случай
+        if (!$user->getRefreshToken()) {
+            throw new UnsupportedUserException('Refresh token not found');
+        }
+
         $payload_str = explode('.', $user->getApiToken())[1];
         $payload = json_decode(
             base64_decode($payload_str),
