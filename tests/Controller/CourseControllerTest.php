@@ -5,10 +5,8 @@ namespace App\Tests\Controller;
 use App\Entity\Course;
 use App\Service\BillingClient;
 use App\Tests\Mock\BillingClientMock;
-use Security;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 class CourseControllerTest extends WebTestCase
 {

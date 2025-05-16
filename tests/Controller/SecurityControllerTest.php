@@ -5,7 +5,6 @@ namespace App\Tests\Controller;
 use App\Service\BillingClient;
 use App\Tests\Mock\BillingClientMock;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
-use Symfony\Component\HttpFoundation\Response;
 
 class SecurityControllerTest extends WebTestCase
 {
