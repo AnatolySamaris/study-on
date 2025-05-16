@@ -117,8 +117,6 @@ final class CourseController extends AbstractController
             $expires_at = null;
         }
 
-        dump($expires_at);
-
         $lessons = $course->getLessons();
         return $this->render('course/show.html.twig', [
             'course' => $course,
