@@ -3,6 +3,18 @@
 {% block title %} {{ course.title }} / StudyOn {% endblock %}
 
 {% block body %}
+    {# Флэш-сообщения #}
+    <div class="container mt-3">
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endfor %}
+    </div>
+
     <h1>{{ course.title }}</h1>
 
     {% if not is_course_available %}
@@ -12,7 +24,7 @@
             <h3>FREE</h3>
         {% endif %}
     {% else %}
-        {% if course_type == "pay" %}
+        {% if course_type == "pay" or course_type == "free" %}
             <h3>Course is available</h3>
         {% elseif course_type == "rent" %}
             <h3>Course is available until {{ expires_at }}</h3>
@@ -24,20 +36,71 @@
     {% if is_granted('ROLE_USER') %}
         {% if not is_course_available %}
             {% if course_type == "rent" %}
-                <a class="btn btn-success text-white" href="{{ path('app_course_pay', {'id': course.id}) }}">
+                {# <a class="btn btn-success text-white"
+                    data-bs-toggle="modal"
+                    data-bs-target="#confirmModal"
+                    {% if not is_enough_balance %}disabled title="Not enough balance"{% endif %}
+                    >
                     Rent Course
-                </a>
+                </a> #}
+                <button class="btn btn-success text-white"
+                        data-bs-toggle="modal"
+                        data-bs-target="#confirmModal"
+                        {% if not is_enough_balance %}disabled{% endif %}>
+                    Rent Course
+                </button>
             {% elseif course_type == "pay" %}
-                <a class="btn btn-success text-white" href="{{ path('app_course_pay', {'id': course.id}) }}">
+                {# <a class="btn btn-success text-white"
+                    data-bs-toggle="modal"
+                    data-bs-target="#confirmModal"
+                    {% if not is_enough_balance %}disabled title="Not enough balance"{% endif %}
+                    >
                     Buy Course
-                </a>
+                </a> #}
+                <button class="btn btn-success text-white"
+                        data-bs-toggle="modal"
+                        data-bs-target="#confirmModal"
+                        {% if not is_enough_balance %}disabled{% endif %}>
+                    Buy Course
+                </button>
             {% else %}
-                <a class="btn btn-success text-white" href="{{ path('app_course_pay', {'id': course.id}) }}">
+                {# <a class="btn btn-success text-white"
+                    data-bs-toggle="modal"
+                    data-bs-target="#confirmModal"
+                    {% if not is_enough_balance %}disabled title="Not enough balance"{% endif %}
+                    >
                     Get Course
-                </a>
+                </a> #}
+                <button class="btn btn-success text-white"
+                        data-bs-toggle="modal"
+                        data-bs-target="#confirmModal"
+                        {% if not is_enough_balance %}disabled{% endif %}>
+                    Get Course
+                </button>
             {% endif %}
         {% endif %}
     {% endif %}
+
+    <!-- Модальное окно Bootstrap -->
+    <div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">Confirm action</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+            <p>Are you sure to pay the course?</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+            <a id="confirmPayment" class="btn btn-primary text-white" href="{{ path('app_course_pay', {'id': course.id}) }}">
+                Yes
+            </a>
+        </div>
+        </div>
+    </div>
+    </div>
 
     {% if is_granted('ROLE_SUPER_ADMIN') %}
         <a class="btn btn-success text-white" href="{{ path('app_course_edit', {'id': course.id}) }}">Edit</a>

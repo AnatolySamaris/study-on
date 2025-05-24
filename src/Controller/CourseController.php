@@ -3,10 +3,11 @@
 namespace App\Controller;
 
 use App\Entity\Course;
+use App\Exception\BillingUnavailableException;
+use App\Exception\NotEnoughBalanceException;
 use App\Form\CourseType;
 use App\Repository\CourseRepository;
 use App\Service\BillingClient;
-use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -28,6 +29,21 @@ final class CourseController extends AbstractController
         $billingCourses = $this->billingClient->coursesList();
 
         $mergedCoursesInfo = $courseRepository->findAllWithBilling($billingCourses);
+
+        $user = $this->getUser();
+
+        // Ставим флаги доступен или не доступен курс
+        for ($i = 0; $i < count($mergedCoursesInfo); $i++) {
+            if ($user) {
+                $isAvailable = $this->billingClient->isCourseAvailable(
+                    $user->getApiToken(),
+                    $mergedCoursesInfo[$i]['code']
+                );
+                $mergedCoursesInfo[$i]['is_available'] = true ? $isAvailable : false;
+            } else {
+                $mergedCoursesInfo[$i]['is_available'] = false;
+            }
+        }
 
         return $this->render('course/index.html.twig', [
             'courses' => $mergedCoursesInfo
@@ -62,13 +78,29 @@ final class CourseController extends AbstractController
         $user = $this->getUser();
 
         if ($user) {
-            $success = $this->billingClient
-                ->payCourse(
-                    $user->getApiToken(),
-                    $course->getCode()
-                )
-            ;
-            return $this->redirectToRoute('app_course_index', [], Response::HTTP_SEE_OTHER);
+            try {
+                $success = $this->billingClient
+                    ->payCourse(
+                        $user->getApiToken(),
+                        $course->getCode()
+                    )
+                ;
+                $flashType = 'success';
+                $message = 'Course successfully paid!';
+            } catch (BillingUnavailableException) {
+                $flashType = 'danger';
+                $message = 'Service is temporarily unavailable. Try again later.';
+            } catch (NotEnoughBalanceException) {
+                $flashType = 'danger';
+                $message = 'Not enough money for payment.';
+            } finally {
+                $this->addFlash($flashType, $message);
+                return $this->redirectToRoute(
+                    'app_course_show',
+                    ['id' => $course->getId()],
+                    Response::HTTP_SEE_OTHER
+                );
+            }
         } else {
             return $this->redirectToRoute('app_login', [], Response::HTTP_SEE_OTHER);
         }
@@ -117,6 +149,17 @@ final class CourseController extends AbstractController
             $expires_at = null;
         }
 
+        if ($isCourseAvailable) {
+            $isEnoughBalance = true;    // Заглушка на всякий случай
+        } else {
+            $isEnoughBalance = $this->billingClient->isEnoughBalance(
+                $user->getApiToken(),
+                $course->getCode()
+            );
+        }
+
+        dump($isCourseAvailable);
+
         $lessons = $course->getLessons();
         return $this->render('course/show.html.twig', [
             'course' => $course,
@@ -124,7 +167,8 @@ final class CourseController extends AbstractController
             'course_type' => $billingCourse['type'],
             'course_price' => $billingCourse['price'] ?? 0.00,
             'is_course_available' => $isCourseAvailable,
-            'expires_at' => $expires_at
+            'expires_at' => $expires_at,
+            'is_enough_balance' => $isEnoughBalance
         ]);
     }
 

@@ -73,6 +73,7 @@ class CourseControllerTest extends WebTestCase
         $client->submit($login);
         $crawler = $client->request('GET', '/courses');
 
+        // TODO : Проверять статус-код ответа
         // Создание курса
         $link = $crawler->selectLink('Create new')->link();
         $crawler = $client->click($link);

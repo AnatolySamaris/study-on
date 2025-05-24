@@ -33,6 +33,9 @@
                     <a class="text-dark fw-bold" href="{{ path('app_course_show', {'id': course.id}) }}">
                         {{ course.title }}
                     </a>
+                    {% if course.is_available %}
+                        <span class="badge bg-success ms-2">Available</span>
+                    {% endif %}
                 </td>
                 <td>{{ course.description ?: "No description." }}</td>
                 <td>{{ course.type }}</td>

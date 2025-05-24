@@ -8,6 +8,7 @@ use App\Repository\LessonRepository;
 use App\Service\BillingClient;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Finder\Exception\AccessDeniedException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -55,6 +56,18 @@ final class LessonController extends AbstractController
     #[IsGranted("ROLE_USER")]
     public function show(Lesson $lesson): Response
     {
+        // Проверка доступности урока (=> доступности курса)
+        $user = $this->getUser();
+        $lessonCourse = $lesson->getCourse();
+        $isCourseAvailable = $this->billingClient->isCourseAvailable(
+            $user->getApiToken(),
+            $lessonCourse->getCode()
+        );
+        
+        if (!$isCourseAvailable) {
+            throw new AccessDeniedException('The lesson of the course is not available');
+        }
+
         $course = $lesson->getCourse();
         return $this->render('lesson/show.html.twig', [
             'lesson' => $lesson,

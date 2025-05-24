@@ -158,7 +158,7 @@ class BillingClient
         return $user;
     }
 
-    public function coursesList(): array
+    public function coursesList(): array|null
     {
         $response = $this->request(
             $this->billingUrl . 'courses',
@@ -178,10 +178,10 @@ class BillingClient
         return $coursesData;
     }
 
-    public function courseInfoByCode(string $course_code): array
+    public function courseInfoByCode(string $courseCode): array
     {
         $response = $this->request(
-            $this->billingUrl . 'courses/' . $course_code,
+            $this->billingUrl . 'courses/' . $courseCode,
             [],
             [
                 'Content-Type' => 'application/json',
@@ -200,14 +200,14 @@ class BillingClient
         return $courseData;
     }
 
-    public function isCourseAvailable(string $token, string $course_code): bool|string
+    public function isCourseAvailable(string $token, string $courseCode): bool|string
     {
         if ($token == null) {
             return false;
         }
 
         $response = $this->request(
-            $this->billingUrl . 'transactions?filter[course_code]=' . $course_code,
+            $this->billingUrl . 'transactions?filter[course_code]=' . $courseCode,
             [],
             [
                 'Content-Type' => 'application/json',
@@ -240,14 +240,14 @@ class BillingClient
         return false;
     }
 
-    public function payCourse(string $token, string $course_code): bool
+    public function payCourse(string $token, string $courseCode): bool
     {
         if ($token == null) {
             throw new Exception("Missing token");
         }
 
         $response = $this->request(
-            $this->billingUrl . 'courses/' . $course_code . '/pay',
+            $this->billingUrl . 'courses/' . $courseCode . '/pay',
             [],
             [
                 'Content-Type' => 'application/json',
@@ -259,7 +259,7 @@ class BillingClient
         if ($response['statusCode'] == 406) {
             throw new NotEnoughBalanceException();
         } elseif ($response['statusCode'] == 500) {
-            throw new BillingUnavailableException('Service is temporarily unavailable. Try again later.');
+            throw new BillingUnavailableException();
         }
 
         $paymentData = json_decode($response['data'], true);
@@ -269,6 +269,56 @@ class BillingClient
         } else {
             throw new BillingUnavailableException();
         }
+    }
+
+    public function isEnoughBalance(string $token, string $courseCode): bool
+    {
+        if ($token == null) {
+            return false;
+        }
+
+        $user = $this->getCurrentUser($token);
+        $courseData = $this->courseInfoByCode($courseCode);
+
+        if ($courseData['type'] == 'free' || $courseData['price'] <= $user->getBalance()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public function getUserTransactions(string $token): array
+    {
+        if ($token == null) {
+            throw new Exception("Missing token");
+        }
+
+        $response = $this->request(
+            $this->billingUrl . 'transactions',
+            [],
+            [
+                'Content-Type' => 'application/json',
+                'Authorization' => 'Bearer ' . $token,
+            ],
+            'GET'
+        );
+
+        if ($response['statusCode'] == 500) {
+            throw new BillingUnavailableException('Service is temporarily unavailable. Try again later.');
+        }
+
+        $transactionsData = json_decode($response['data'], true);
+
+        if (!$transactionsData) {
+            throw new BillingUnavailableException('Service is temporarily unavailable. Try again later.');
+        }
+
+        // Сортировка по убыванию даты
+        usort($transactionsData, function ($a, $b) {
+            return strtotime($b['created_at']) <=> strtotime($a['created_at']);
+        });
+
+        return $transactionsData;
     }
 
     private function getLatestTransaction(array $transactions): array
