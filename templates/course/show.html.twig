@@ -36,13 +36,6 @@
     {% if is_granted('ROLE_USER') %}
         {% if not is_course_available %}
             {% if course_type == "rent" %}
-                {# <a class="btn btn-success text-white"
-                    data-bs-toggle="modal"
-                    data-bs-target="#confirmModal"
-                    {% if not is_enough_balance %}disabled title="Not enough balance"{% endif %}
-                    >
-                    Rent Course
-                </a> #}
                 <button class="btn btn-success text-white"
                         data-bs-toggle="modal"
                         data-bs-target="#confirmModal"
@@ -50,13 +43,6 @@
                     Rent Course
                 </button>
             {% elseif course_type == "pay" %}
-                {# <a class="btn btn-success text-white"
-                    data-bs-toggle="modal"
-                    data-bs-target="#confirmModal"
-                    {% if not is_enough_balance %}disabled title="Not enough balance"{% endif %}
-                    >
-                    Buy Course
-                </a> #}
                 <button class="btn btn-success text-white"
                         data-bs-toggle="modal"
                         data-bs-target="#confirmModal"
@@ -64,13 +50,6 @@
                     Buy Course
                 </button>
             {% else %}
-                {# <a class="btn btn-success text-white"
-                    data-bs-toggle="modal"
-                    data-bs-target="#confirmModal"
-                    {% if not is_enough_balance %}disabled title="Not enough balance"{% endif %}
-                    >
-                    Get Course
-                </a> #}
                 <button class="btn btn-success text-white"
                         data-bs-toggle="modal"
                         data-bs-target="#confirmModal"

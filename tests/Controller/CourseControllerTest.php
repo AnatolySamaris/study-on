@@ -5,8 +5,10 @@ namespace App\Tests\Controller;
 use App\Entity\Course;
 use App\Service\BillingClient;
 use App\Tests\Mock\BillingClientMock;
+use DateTime;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
+use function PHPUnit\Framework\assertStringContainsString;
 
 class CourseControllerTest extends WebTestCase
 {
@@ -73,11 +75,12 @@ class CourseControllerTest extends WebTestCase
         $client->submit($login);
         $crawler = $client->request('GET', '/courses');
 
-        // TODO : Проверять статус-код ответа
         // Создание курса
         $link = $crawler->selectLink('Create new')->link();
         $crawler = $client->click($link);
+        $client->followRedirects();
         $this->assertEquals('/courses/new', $client->getRequest()->getPathInfo());
+        $this->assertResponseStatusCodeSame(200);
     }
 
     public function testNewCoursePostValidData(): void
@@ -964,5 +967,242 @@ class CourseControllerTest extends WebTestCase
 
         // Проверяем, что поймали исключение Access Denied
         $this->assertResponseStatusCodeSame(403);
+    }
+
+    public function testBuyPayCourseSuccessful(): void
+    {
+        $client = static::createClient();
+        $client->disableReboot();
+        $client->getContainer()->set(
+            BillingClient::class,
+            new BillingClientMock()
+        );
+
+        // Логин
+        $crawler = $client->request('GET', '/login');
+        $submitBtn = $crawler->selectButton('Sign in');
+        $login = $submitBtn->form([
+            'email' => 'user@mail.ru', # Логинимся как юзер
+            'password' => 'password',
+        ]);
+        $client->submit($login);
+
+        $entityManager = $client->getContainer()->get('doctrine')->getManager();
+
+        // Выбираем покупаемый курс
+        $course = $entityManager->getRepository(Course::class)->findOneBy(['title' => 'Basics of Computer Vision']);
+
+        // Покупаем курс
+        $client->request('POST', '/courses/' . $course->getId() . '/pay');
+        $client->followRedirect();
+
+        // Проверка, что покупка успешная
+        $crawler = $client->getCrawler();
+        $this->assertSelectorTextContains('.alert-success', 'Course successfully paid!');
+        $this->assertStringContainsString(
+            'Course is available',
+            $crawler->filter('h3')->text()
+        );
+
+        // Проверяем наличие новой транзакции
+        $crawler = $client->request('GET', '/transactions');
+        $this->assertResponseIsSuccessful();
+
+        $shownTransactions = $crawler->filter('table.table tbody tr');
+        $this->assertCount(3, $shownTransactions);  // Ожидаем 3 транзакции
+
+        $rows = $crawler->filter('table.table tbody tr');
+        $this->assertStringContainsString(
+            'payment',  // Тип транзакции
+            $rows->first()->filter('td')->eq(1)->text(),
+        );
+        $link = $rows->first()->filter('td a')->link();   // Ссылка на купленный курс
+        $this->assertStringContainsString(
+            '/courses/' . $course->getId(),
+            $link->getUri(),
+        );
+    }
+
+    public function testBuyRentCourseSuccessful(): void
+    {
+        $client = static::createClient();
+        $client->disableReboot();
+        $client->getContainer()->set(
+            BillingClient::class,
+            new BillingClientMock()
+        );
+
+        // Логин
+        $crawler = $client->request('GET', '/login');
+        $submitBtn = $crawler->selectButton('Sign in');
+        $login = $submitBtn->form([
+            'email' => 'user@mail.ru', # Логинимся как юзер
+            'password' => 'password',
+        ]);
+        $client->submit($login);
+
+        $entityManager = $client->getContainer()->get('doctrine')->getManager();
+
+        // Выбираем покупаемый курс
+        $course = $entityManager->getRepository(Course::class)->findOneBy(['title' => 'Python Junior']);
+
+        // Покупаем курс
+        $client->request('POST', '/courses/' . $course->getId() . '/pay');
+        $client->followRedirect();
+
+        // Проверка, что покупка успешная
+        $crawler = $client->getCrawler();
+        $now = new DateTime();
+        $this->assertSelectorTextContains('.alert-success', 'Course successfully paid!');
+        $this->assertStringContainsString(
+            'Course is available until ' . $now->modify('+1 week')->format('d.m.Y'),
+            $crawler->filter('h3')->text()
+        );
+
+        // Проверяем наличие новой транзакции
+        $crawler = $client->request('GET', '/transactions');
+        $this->assertResponseIsSuccessful();
+
+        $shownTransactions = $crawler->filter('table.table tbody tr');
+        $this->assertCount(3, $shownTransactions);  // Ожидаем 3 транзакции
+
+        $rows = $crawler->filter('table.table tbody tr');
+        $this->assertStringContainsString(
+            'payment',  // Тип транзакции
+            $rows->first()->filter('td')->eq(1)->text(),
+        );
+        $link = $rows->first()->filter('td a')->link();   // Ссылка на купленный курс
+        $this->assertStringContainsString(
+            '/courses/' . $course->getId(),
+            $link->getUri(),
+        );
+    }
+
+    public function testBuyFreeCourseSuccessful(): void
+    {
+        $client = static::createClient();
+        $client->disableReboot();
+        $client->getContainer()->set(
+            BillingClient::class,
+            new BillingClientMock()
+        );
+
+        // Логин
+        $crawler = $client->request('GET', '/login');
+        $submitBtn = $crawler->selectButton('Sign in');
+        $login = $submitBtn->form([
+            'email' => 'user@mail.ru', # Логинимся как юзер
+            'password' => 'password',
+        ]);
+        $client->submit($login);
+
+        $entityManager = $client->getContainer()->get('doctrine')->getManager();
+
+        // Выбираем покупаемый курс
+        $course = $entityManager->getRepository(Course::class)->findOneBy(['title' => 'ROS2 Course']);
+
+        // Покупаем курс
+        $client->request('POST', '/courses/' . $course->getId() . '/pay');
+        $client->followRedirect();
+
+        // Проверка, что покупка успешная
+        $crawler = $client->getCrawler();
+        $this->assertSelectorTextContains('.alert-success', 'Course successfully paid!');
+        $this->assertStringContainsString(
+            'Course is available',
+            $crawler->filter('h3')->text()
+        );
+
+        // Проверяем наличие новой транзакции
+        $crawler = $client->request('GET', '/transactions');
+        $this->assertResponseIsSuccessful();
+
+        $shownTransactions = $crawler->filter('table.table tbody tr');
+        $this->assertCount(3, $shownTransactions);  // Ожидаем 3 транзакции
+
+        $rows = $crawler->filter('table.table tbody tr');
+        $this->assertStringContainsString(
+            'payment',  // Тип транзакции
+            $rows->first()->filter('td')->eq(1)->text(),
+        );
+        $link = $rows->first()->filter('td a')->link();   // Ссылка на купленный курс
+        $this->assertStringContainsString(
+            '/courses/' . $course->getId(),
+            $link->getUri(),
+        );
+    }
+
+    // Для случая, когда сделан запрос напрямую по url
+    public function testBuyCourseNotEnoughBalance(): void
+    {
+        $client = static::createClient();
+        $client->disableReboot();
+        $client->getContainer()->set(
+            BillingClient::class,
+            new BillingClientMock()
+        );
+
+        // Логин
+        $crawler = $client->request('GET', '/login');
+        $submitBtn = $crawler->selectButton('Sign in');
+        $login = $submitBtn->form([
+            'email' => 'new_user@mail.ru', # Логинимся как новый юзер (без денег)
+            'password' => 'password',
+        ]);
+        $client->submit($login);
+
+        $entityManager = $client->getContainer()->get('doctrine')->getManager();
+
+        // Выбираем покупаемый курс
+        $course = $entityManager->getRepository(Course::class)->findOneBy(['title' => 'Basics of Computer Vision']);
+
+        // Покупаем курс
+        $client->request('POST', '/courses/' . $course->getId() . '/pay');
+        $client->followRedirect();
+
+        // Проверка, что покупка успешная
+        $crawler = $client->getCrawler();
+        $this->assertSelectorTextContains('.alert-danger', 'Not enough money for payment.');
+
+        // Проверяем что число транзакций не изменилось
+        $crawler = $client->request('GET', '/transactions');
+        $this->assertResponseIsSuccessful();
+
+        $shownTransactions = $crawler->filter('table.table tbody tr');
+        $this->assertCount(1, $shownTransactions);  // Ожидаем 1 транзакцию
+    }
+
+    public function testBuyCourseNotEnoughBalanceButtonDisabled(): void
+    {
+        $client = static::createClient();
+        $client->disableReboot();
+        $client->getContainer()->set(
+            BillingClient::class,
+            new BillingClientMock()
+        );
+
+        // Логин
+        $crawler = $client->request('GET', '/login');
+        $submitBtn = $crawler->selectButton('Sign in');
+        $login = $submitBtn->form([
+            'email' => 'new_user@mail.ru', # Логинимся как новый юзер (без денег)
+            'password' => 'password',
+        ]);
+        $client->submit($login);
+
+        $entityManager = $client->getContainer()->get('doctrine')->getManager();
+
+        // Выбираем покупаемый курс
+        $course = $entityManager->getRepository(Course::class)->findOneBy(['title' => 'Basics of Computer Vision']);
+
+        // Страница курса
+        $crawler = $client->request('GET', '/courses/' . $course->getId());
+        $this->assertResponseIsSuccessful();
+
+        // Проверяем, что кнопка покупки заблокирована
+        $buyButton = $crawler->selectButton('Buy Course');
+        $this->assertNotNull(
+            $buyButton->attr('disabled'),
+        );
     }
 }

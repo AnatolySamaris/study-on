@@ -36,7 +36,7 @@ class LessonControllerTest extends WebTestCase
         $this->assertCount(count($course->getLessons()), $shownCourseLessons);
     }
 
-    public function testShowExistingLesson(): void
+    public function testShowExistingLessonAvailableCourse(): void
     {
         $client = static::createClient();
         $client->disableReboot();
@@ -49,24 +49,51 @@ class LessonControllerTest extends WebTestCase
         $crawler = $client->request('GET', '/login');
         $submitBtn = $crawler->selectButton('Sign in');
         $login = $submitBtn->form([
-            'email' => 'admin@mail.ru', # Логинимся как админ
+            'email' => 'user@mail.ru', # Логинимся как админ
             'password' => 'password',
         ]);
         $client->submit($login);
 
-        $crawler = $client->request('GET', '/courses');
-        $this->assertResponseIsSuccessful();
+        // Покупаем какой-нибудь курс
+        $entityManager = $client->getContainer()->get('doctrine')->getManager();
+        $course = $entityManager->getRepository(Course::class)->findOneBy(['title' => 'Basics of Computer Vision']);
+        $client->request('POST', '/courses/' . $course->getId() . '/pay');
+        $client->followRedirect();
+        $this->assertEquals('/courses/' . $course->getId(), $client->getRequest()->getPathInfo());
 
-        $firstCourseLink = $crawler->filter('table.table tbody tr td a')->first()->link();
-        $crawler = $client->click($firstCourseLink);
-        $this->assertResponseIsSuccessful();
-
-        $this->assertNotEquals(0, $crawler->filter('tr'));
-
-        // Переход на страницу урока
+        // Переход на страницу урока доступного курса
+        $crawler = $client->getCrawler();
         $firstLessonLink = $crawler->filter('tr td a')->first()->link();
         $crawler = $client->click($firstLessonLink);
         $this->assertResponseIsSuccessful();
+    }
+
+    public function testShowExistingLessonUnavailable(): void
+    {
+        $client = static::createClient();
+        $client->disableReboot();
+        $client->getContainer()->set(
+            BillingClient::class,
+            new BillingClientMock()
+        );
+
+        // Логин
+        $crawler = $client->request('GET', '/login');
+        $submitBtn = $crawler->selectButton('Sign in');
+        $login = $submitBtn->form([
+            'email' => 'user@mail.ru', # Логинимся как админ
+            'password' => 'password',
+        ]);
+        $client->submit($login);
+
+        // Переходим на страницу урока недоступного курса
+        $entityManager = $client->getContainer()->get('doctrine')->getManager();
+        $course = $entityManager->getRepository(Course::class)->findOneBy(['title' => 'Basics of Computer Vision']);
+        $lesson = $course->getLessons()->first();
+        $client->request('GET', '/lessons/' . $lesson->getId());
+
+        // Проверяем, что страница недоступна
+        $this->assertResponseStatusCodeSame(Response::HTTP_INTERNAL_SERVER_ERROR);
     }
 
     public function testShowNonExistingLesson(): void

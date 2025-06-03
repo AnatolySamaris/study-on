@@ -139,26 +139,26 @@ final class CourseController extends AbstractController
                     $course->getCode()
                 )
             ;
+            
+            if ($isCourseAvailable && $billingCourse['type'] == 'rent') {
+                $expires_at = $isCourseAvailable;   // Для rent возвращается дата
+            } else {
+                $expires_at = null;
+            }
+
+            if ($isCourseAvailable) {
+                $isEnoughBalance = true;    // Заглушка на всякий случай
+            } else {
+                $isEnoughBalance = $this->billingClient->isEnoughBalance(
+                    $user->getApiToken(),
+                    $course->getCode()
+                );
+            }
         } else {
             $isCourseAvailable = false;
-        }
-
-        if ($isCourseAvailable && $billingCourse['type'] == 'rent') {
-            $expires_at = $isCourseAvailable;   // Для rent возвращается дата
-        } else {
+            $isEnoughBalance = false;
             $expires_at = null;
         }
-
-        if ($isCourseAvailable) {
-            $isEnoughBalance = true;    // Заглушка на всякий случай
-        } else {
-            $isEnoughBalance = $this->billingClient->isEnoughBalance(
-                $user->getApiToken(),
-                $course->getCode()
-            );
-        }
-
-        dump($isCourseAvailable);
 
         $lessons = $course->getLessons();
         return $this->render('course/show.html.twig', [

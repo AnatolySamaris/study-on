@@ -63,6 +63,10 @@ final class LessonController extends AbstractController
             $user->getApiToken(),
             $lessonCourse->getCode()
         );
+
+        if (in_array('ROLE_SUPER_ADMIN', $user->getRoles())) {  // Для админа всё доступно
+            $isCourseAvailable = true;
+        }
         
         if (!$isCourseAvailable) {
             throw new AccessDeniedException('The lesson of the course is not available');
