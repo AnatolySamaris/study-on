@@ -2,6 +2,8 @@
 
 namespace App\Service;
 
+use App\Dto\CourseDto;
+use App\Entity\Course;
 use App\Exception\BillingNotFoundException;
 use App\Exception\BillingUnavailableException;
 use App\Exception\InvalidCredentialsException;
@@ -49,7 +51,8 @@ class BillingClient
         $statusCode = curl_getinfo($curl)['http_code'];
 
         if ($statusCode >= 500 || curl_error($curl)) {
-            throw new BillingUnavailableException('Service is temporarily unavailable. Try again later.');
+            throw new BillingUnavailableException($statusCode . ' : ' . $response);
+            // throw new BillingUnavailableException('Service is temporarily unavailable. Try again later.');
         }
         curl_close($curl);
 
@@ -319,6 +322,53 @@ class BillingClient
         });
 
         return $transactionsData;
+    }
+
+    public function createCourse(string $token, CourseDto $courseDto)
+    {
+        if ($token == null) {
+            throw new Exception("Missing token");
+        }
+
+        $response = $this->request(
+            $this->billingUrl . 'courses/new',
+            $courseDto->asArray(),
+            [
+                'Content-Type' => 'application/json',
+                'Authorization' => 'Bearer ' . $token,
+            ],
+            'POST'
+        );
+
+        if ($response['statusCode'] == 201) {
+            return;
+        } else {
+            throw new BillingUnavailableException('Service is temporarily unavailable. Try again later.');
+        }
+    }
+
+    public function editCourse(string $token, string $courseCode, CourseDto $courseDto)
+    {
+        if ($token == null) {
+            throw new Exception("Missing token");
+        }
+
+        $response = $this->request(
+            $this->billingUrl . 'courses/' . $courseCode,
+            $courseDto->asArray(),
+            [
+                'Content-Type' => 'application/json',
+                'Authorization' => 'Bearer ' . $token,
+            ],
+            'POST'
+        );
+        
+        if ($response['statusCode'] == 200) {
+            return;
+        } else {
+            throw new BillingUnavailableException($response['statusCode'] . ' : ' . $response['data']);
+            // throw new BillingUnavailableException('Service is temporarily unavailable. Try again later.');
+        }
     }
 
     private function getLatestTransaction(array $transactions): array

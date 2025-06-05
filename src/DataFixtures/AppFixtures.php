@@ -4,6 +4,7 @@ namespace App\DataFixtures;
 
 use App\Entity\Course;
 use App\Entity\Lesson;
+use App\Enum\CourseType;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 
@@ -12,11 +13,17 @@ class AppFixtures extends Fixture
     public function load(ObjectManager $manager): void
     {
         $courseTitles = [
-            'Python Junior', 'Introduction to Neural Networks', 'Industrial WEB-development',
-            'Basics of Computer Vision', 'ROS2 Course'
+            'Basics of Computer Vision', 'Python Junior', 'ROS2 Course',
+            'Industrial WEB-development', 'Introduction to Neural Networks'
         ];
         $lessonContents = [
             'Prerequisites', 'Theory', 'Practice', 'Test', 'Conclusion'
+        ];
+        $courseTypes = [
+            CourseType::PAY, CourseType::RENT, CourseType::FREE
+        ];
+        $coursePrices = [
+            350.99, 299.99, 0.0, 500, 850
         ];
 
         // Создаем курсы. Описание курса: 'THERE IS "<course_title>" DESCRIPTION.'
@@ -25,6 +32,8 @@ class AppFixtures extends Fixture
             $course->setTitle($courseTitles[$i]);
             $course->setCode($this->generateSlug($courseTitles[$i]));
             $course->setDescription('THERE IS "' . $courseTitles[$i] . '" DESCRIPTION.');
+            $course->setType($courseTypes[$i % 3]);
+            $course->setPrice($coursePrices[$i]);
             $manager->persist($course);
         }
         $manager->flush();  // Создаем курсы, чтобы были id для привязки уроков

@@ -2,9 +2,11 @@
 
 namespace App\Controller;
 
+use App\Dto\CourseDto;
 use App\Entity\Course;
 use App\Exception\BillingUnavailableException;
 use App\Exception\NotEnoughBalanceException;
+use App\Enum\CourseType as EnumCourseType;
 use App\Form\CourseType;
 use App\Repository\CourseRepository;
 use App\Service\BillingClient;
@@ -55,10 +57,15 @@ final class CourseController extends AbstractController
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
         $course = new Course();
+        $course->setType(EnumCourseType::FREE); // Дефолтное значение
         $form = $this->createForm(CourseType::class, $course);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $courseDto = new CourseDto();
+            $courseDto->fromEntity($course);
+            $this->billingClient->createCourse($this->getUser()->getApiToken(), $courseDto);
+
             $entityManager->persist($course);
             $entityManager->flush();
 
@@ -110,10 +117,19 @@ final class CourseController extends AbstractController
     #[IsGranted("ROLE_SUPER_ADMIN")]
     public function edit(Request $request, Course $course, EntityManagerInterface $entityManager): Response
     {
+        $courseCode = $course->getCode();
         $form = $this->createForm(CourseType::class, $course);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $courseDto = new CourseDto();
+            $courseDto->fromEntity($course);
+            $this->billingClient->editCourse(
+                $this->getUser()->getApiToken(),
+                $courseCode,
+                $courseDto
+            );
+
             $entityManager->flush();
 
             return $this->redirectToRoute('app_course_index', [], Response::HTTP_SEE_OTHER);
