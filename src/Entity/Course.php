@@ -58,6 +58,7 @@ class Course
     private ?int $type = null;
 
     #[ORM\Column(nullable: true)]
+    #[Assert\PositiveOrZero(message: "Значение должно быть неотрицательным")]
     private ?float $price = null;
 
     public function __construct()

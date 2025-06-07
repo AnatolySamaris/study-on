@@ -51,8 +51,7 @@ class BillingClient
         $statusCode = curl_getinfo($curl)['http_code'];
 
         if ($statusCode >= 500 || curl_error($curl)) {
-            throw new BillingUnavailableException($statusCode . ' : ' . $response);
-            // throw new BillingUnavailableException('Service is temporarily unavailable. Try again later.');
+            throw new BillingUnavailableException('Service is temporarily unavailable. Try again later.');
         }
         curl_close($curl);
 
@@ -366,8 +365,7 @@ class BillingClient
         if ($response['statusCode'] == 200) {
             return;
         } else {
-            throw new BillingUnavailableException($response['statusCode'] . ' : ' . $response['data']);
-            // throw new BillingUnavailableException('Service is temporarily unavailable. Try again later.');
+            throw new BillingUnavailableException('Service is temporarily unavailable. Try again later.');
         }
     }
 

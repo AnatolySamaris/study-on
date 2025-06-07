@@ -2,6 +2,9 @@
 
 namespace App\Tests\Mock;
 
+use App\Dto\CourseDto;
+use App\Enum\CourseType;
+use App\Exception\BillingUnavailableException;
 use App\Exception\InvalidCredentialsException;
 use App\Exception\NotEnoughBalanceException;
 use App\Security\User;
@@ -61,27 +64,32 @@ class BillingClientMock extends BillingClient
     ];
 
     private $courses = [
-        [
+        'python-junior' => [
+            "title" => "Python Junior",
             "code" => "python-junior",
             "type" => 'rent',
             "price" => 299.99
         ],
-        [
+        'introduction-to-neural-networks' => [
+            "title" => "Introduction to Neural Networks",
             "code" => "introduction-to-neural-networks",
             "type" => 'rent',
             "price" => 500.00
         ],
-        [
+        'industrial-web-development' => [
+            "title" => "Industrial WEB-development",
             "code" => "industrial-web-development",
             "type" => 'pay',
             "price" => 850.00
         ],
-        [
+        'basics-of-computer-vision' => [
+            "title" => "Basics of Computer Vision",
             "code" => "basics-of-computer-vision",
             "type" => 'pay',
             "price" => 350.99
         ],
-        [
+        'ros2-course' => [
+            "title" => "ROS2 Course",
             "code" => "ros2-course",
             "type" => 'free',
             "price" => 0.00
@@ -171,17 +179,16 @@ class BillingClientMock extends BillingClient
 
     public function coursesList(): array
     {
-        return $this->courses;
+        $courses = [];
+        foreach ($this->courses as $course) {
+            $data[] = $course;
+        }
+        return $courses;
     }
 
     public function courseInfoByCode(string $courseCode): array
     {
-        foreach ($this->courses as $course) {
-            if ($course['code'] == $courseCode) {
-                return $course;
-            }
-        }
-        return [];
+        return $this->courses[$courseCode];
     }
 
     public function isCourseAvailable(string $token, string $courseCode): bool|string
@@ -286,5 +293,43 @@ class BillingClientMock extends BillingClient
         });
 
         return $userTransactions;
+    }
+
+    public function createCourse(string $token, CourseDto $courseDto)
+    {
+        if ($token == null) {
+            throw new Exception("Missing token");
+        }
+
+        try {
+            $this->courses[$courseDto->code] = [
+                'title' => $courseDto->title,
+                'code' => $courseDto->code,
+                'type' => $courseDto->type,
+                'price' => $courseDto->price
+            ];
+            return;
+        } catch (Exception $e) {
+            throw new BillingUnavailableException('Service is temporarily unavailable. Try again later.');
+        }
+    }
+
+    public function editCourse(string $token, string $courseCode, CourseDto $courseDto)
+    {
+        if ($token == null) {
+            throw new Exception("Missing token");
+        }
+
+        try {
+            $this->courses[$courseCode] = [
+                'title' => $courseDto->title,
+                'code' => $courseDto->code,
+                'type' => $courseDto->type,
+                'price' => $courseDto->price
+            ];
+            return;
+        } catch (Exception $e) {
+            throw new BillingUnavailableException('Service is temporarily unavailable. Try again later.');
+        }
     }
 }

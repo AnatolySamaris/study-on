@@ -3,6 +3,7 @@
 namespace App\Tests\Controller;
 
 use App\Entity\Course;
+use App\Enum\CourseType;
 use App\Service\BillingClient;
 use App\Tests\Mock\BillingClientMock;
 use DateTime;
@@ -120,6 +121,8 @@ class CourseControllerTest extends WebTestCase
         $form['course[code]'] = 'test-code-123';
         $form['course[title]'] = 'Test Course';
         $form['course[description]'] = 'Test Description';
+        $form['course[type]'] = CourseType::RENT->value;
+        $form['course[price]'] = 100.99;
         
         $client->submit($form);
         $this->assertResponseRedirects('/courses', Response::HTTP_SEE_OTHER);
@@ -174,6 +177,8 @@ class CourseControllerTest extends WebTestCase
         $form['course[code]'] = '';
         $form['course[title]'] = 'Test Course';
         $form['course[description]'] = 'Test Description';
+        $form['course[type]'] = CourseType::RENT->value;
+        $form['course[price]'] = 100.99;
         
         $crawler = $client->submit($form);
         
@@ -223,6 +228,8 @@ class CourseControllerTest extends WebTestCase
         $form['course[code]'] = $existingCourse->getCode();
         $form['course[title]'] = 'Test Course';
         $form['course[description]'] = 'Test Description';
+        $form['course[type]'] = CourseType::RENT->value;
+        $form['course[price]'] = 100.99;
         
         $crawler = $client->submit($form);
         
@@ -266,6 +273,8 @@ class CourseControllerTest extends WebTestCase
         $form['course[code]'] = 'Test Code+#/.,';
         $form['course[title]'] = 'Test Course';
         $form['course[description]'] = 'Test Description';
+        $form['course[type]'] = CourseType::RENT->value;
+        $form['course[price]'] = 100.99;
         
         $crawler = $client->submit($form);
         
@@ -309,6 +318,8 @@ class CourseControllerTest extends WebTestCase
         $form['course[code]'] = 'test-code-123';
         $form['course[title]'] = '';
         $form['course[description]'] = 'Test Description';
+        $form['course[type]'] = CourseType::RENT->value;
+        $form['course[price]'] = 100.99;
         
         $crawler = $client->submit($form);
         
@@ -352,6 +363,8 @@ class CourseControllerTest extends WebTestCase
         $form['course[code]'] = 'test-code-123';
         $form['course[title]'] = str_repeat('TEST', 1000);
         $form['course[description]'] = 'Test Description';
+        $form['course[type]'] = CourseType::RENT->value;
+        $form['course[price]'] = 100.99;
         
         $crawler = $client->submit($form);
         
@@ -395,6 +408,8 @@ class CourseControllerTest extends WebTestCase
         $form['course[code]'] = 'test-code-123';
         $form['course[title]'] = 'Test Title';
         $form['course[description]'] = str_repeat('TEST', 1000);
+        $form['course[type]'] = CourseType::RENT->value;
+        $form['course[price]'] = 100.99;
         
         $crawler = $client->submit($form);
         
@@ -405,6 +420,51 @@ class CourseControllerTest extends WebTestCase
         $this->assertSelectorTextContains(
             '#course_description + .invalid-feedback',
             'Описание не может быть длиннее 1000 символов'
+        );
+    }
+
+    public function testNewPostInvalidType(): void
+    {
+        $client = static::createClient();
+        $client->disableReboot();
+        $client->getContainer()->set(
+            BillingClient::class,
+            new BillingClientMock()
+        );
+
+        // Логин
+        $crawler = $client->request('GET', '/login');
+        $submitBtn = $crawler->selectButton('Sign in');
+        $login = $submitBtn->form([
+            'email' => 'admin@mail.ru', # Логинимся как админ
+            'password' => 'password',
+        ]);
+        $client->submit($login);
+        $crawler = $client->request('GET', '/courses');
+
+        $link = $crawler->filter('a:contains("Create new")')->link();
+        $crawler = $client->click($link);
+
+        $this->assertResponseIsSuccessful();
+
+        $formButton = $crawler->selectButton('Save');
+        $form = $formButton->form();
+        
+        $form['course[code]'] = 'test-code-123';
+        $form['course[title]'] = 'Test Title';
+        $form['course[description]'] = 'Test Description';
+        $form['course[type]'] = CourseType::RENT->value;
+        $form['course[price]'] = -10;
+        
+        $crawler = $client->submit($form);
+        
+        // Статус 422 (Unprocessable Content)
+        $this->assertResponseStatusCodeSame(422);
+        
+        // - Сообщение об ошибке для поля code
+        $this->assertSelectorTextContains(
+            '.invalid-feedback',
+            'Значение должно быть неотрицательным'
         );
     }
 
