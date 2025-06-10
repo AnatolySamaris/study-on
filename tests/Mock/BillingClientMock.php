@@ -332,4 +332,18 @@ class BillingClientMock extends BillingClient
             throw new BillingUnavailableException('Service is temporarily unavailable. Try again later.');
         }
     }
+
+    public function deleteCourse(string $token, string $courseCode)
+    {
+        if ($token == null) {
+            throw new Exception("Missing token");
+        }
+
+        try {
+            unset($this->courses[$courseCode]);
+            return;
+        } catch (Exception $e) {
+            throw new BillingUnavailableException('Service is temporarily unavailable. Try again later.');
+        }
+    }
 }
