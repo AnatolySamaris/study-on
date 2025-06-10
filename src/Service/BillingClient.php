@@ -369,6 +369,29 @@ class BillingClient
         }
     }
 
+    public function deleteCourse(string $token, string $courseCode)
+    {
+        if ($token == null) {
+            throw new Exception("Missing token");
+        }
+
+        $response = $this->request(
+            $this->billingUrl . 'courses/' . $courseCode . '/delete',
+            [],
+            [
+                'Content-Type' => 'application/json',
+                'Authorization' => 'Bearer ' . $token,
+            ],
+            'POST'
+        );
+        
+        if ($response['statusCode'] == 200) {
+            return;
+        } else {
+            throw new BillingUnavailableException('Service is temporarily unavailable. Try again later.');
+        }
+    }
+
     private function getLatestTransaction(array $transactions): array
     {
         if (empty($transactions)) {
