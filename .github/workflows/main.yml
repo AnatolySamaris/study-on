@@ -30,9 +30,23 @@ jobs:
           docker network create study-onbilling_default
           docker-compose build
           docker-compose up -d
-          docker-compose run -u root node yarn install
-          docker-compose run -u root node yarn encore dev
           docker ps -a
+
+      - name: Install Node dependencies
+        run: |
+          docker-compose exec -T -u root node sh -c "
+          mkdir -p /app/node_modules &&
+          touch /app/yarn.lock &&
+          chown -R node:node /app/node_modules /app/yarn.lock /app/package.json /app/public /app/package-lock.json
+          "
+          
+          docker-compose exec -T node npm install @hotwired/stimulus@^3.0 --save-dev
+          docker-compose exec -T node npm install
+          docker-compose exec -T node npm run dev
+          docker-compose run -u root node yarn install 
+          
+          # Сборка ассетов
+          docker-compose exec -T -u node node yarn encore dev
 
       - name: Setting test environment and DB
         run: |
