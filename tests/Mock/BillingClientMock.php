@@ -137,7 +137,7 @@ class BillingClientMock extends BillingClient
         return [
             'user' => $foundUser,
             'token' => $token,
-            'refresh_token' => $token   // Заглушка
+            'refresh_token' => $token
         ];
     }
 
