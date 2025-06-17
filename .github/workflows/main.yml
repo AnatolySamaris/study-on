@@ -37,12 +37,12 @@ jobs:
           touch /app/yarn.lock &&
           chown -R node:node /app/node_modules /app/yarn.lock /app/package.json /app/public /app/package-lock.json
           "
-          
+
           docker-compose exec -T node npm install @hotwired/stimulus@^3.0 --save-dev
           docker-compose exec -T node npm install
           docker-compose exec -T node npm run dev
           
-          # Сборка ассетов
+          # Сборка ассетов 
           docker-compose exec -T -u node node yarn encore dev
 
       - name: Setting test environment and DB
