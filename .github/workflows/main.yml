@@ -32,7 +32,7 @@ jobs:
           docker-compose up -d
           docker ps -a
 
-      - name: Install Node dependencies
+      - name: Installing Node dependencies
         run: |
           docker-compose exec -T -u root node sh -c "
           mkdir -p /app/node_modules &&
@@ -40,7 +40,7 @@ jobs:
           chown -R node:node /app/node_modules /app/yarn.lock /app/package.json /app/public /app/package-lock.json
           "
           
-          docker-compose exec -T node npm install @hotwired/stimulus@^3.0 --save-dev
+          docker-compose exec -T node npm install webpack-cli@5.1.4 --save-dev
           docker-compose exec -T node npm install
           docker-compose exec -T node npm run dev
           docker-compose run -u root node yarn install 
@@ -58,6 +58,6 @@ jobs:
           docker-compose exec -T php bin/console doctrine:migrations:migrate -n --env=test
           docker-compose exec -T php bin/console doctrine:fixtures:load -n --env=test
 
-      - name: run PHPUnit
+      - name: Run PHPUnit
         run: |
           docker-compose exec -T php bin/phpunit
