@@ -20,6 +20,9 @@ migrate:
 
 fixtload:
 	@${CONSOLE} doctrine:fixtures:load
+
+fixtload-test:
+	@${CONSOLE} doctrine:fixtures:load --env=test
 	
 encore_dev:
 	@${COMPOSE} run node yarn encore dev

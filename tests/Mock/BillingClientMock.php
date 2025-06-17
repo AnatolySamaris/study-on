@@ -3,7 +3,6 @@
 namespace App\Tests\Mock;
 
 use App\Dto\CourseDto;
-use App\Enum\CourseType;
 use App\Exception\BillingUnavailableException;
 use App\Exception\InvalidCredentialsException;
 use App\Exception\NotEnoughBalanceException;
@@ -181,7 +180,7 @@ class BillingClientMock extends BillingClient
     {
         $courses = [];
         foreach ($this->courses as $course) {
-            $data[] = $course;
+            $courses[] = $course;
         }
         return $courses;
     }
